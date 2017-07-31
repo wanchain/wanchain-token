@@ -1,2 +1,1 @@
 # wanchain-token
-# wanchain-token
