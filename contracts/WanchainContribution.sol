@@ -128,13 +128,11 @@ contract WanchainContribution is Owned {
         _;
     }    
 
-    // TODO: not used !!!!!!!!!!!!!!!!!
     modifier notEarlierThan(uint x) {
         require(now >= x);
         _;
     }
 
-    // TODO: not used !!!!!!!!!!!!!!!!!
     modifier earlierThan(uint x) {
         require(now < x);
         _;
