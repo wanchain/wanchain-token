@@ -1,4 +1,6 @@
 Ref: https://github.com/ethereum/solidity/blob/develop/docs/style-guide.rst
+
+
 .. index:: style, coding style
 
 #############
