@@ -35,7 +35,7 @@ import "./SafeMath.sol";
 
 /// @title Wanchain Token Contract
 /// For more information about this token sale, please visit https://wanchain.org
-///  @author Cathy - <cathy@wanchain.org>
+/// @author Cathy - <cathy@wanchain.org>
 contract WanToken is StandardToken {
     using SafeMath for uint;
 
