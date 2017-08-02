@@ -212,7 +212,7 @@ contract WanchainContribution is Owned {
         returns (bool) 
     {
     	require(receipient != 0x0);
-    	require(msg.value >= 0.01 ether);
+    	require(msg.value >= 0.1 ether);
 
     	if (partnersLimit[receipient] > 0)
     		buyFromPartner(receipient);
