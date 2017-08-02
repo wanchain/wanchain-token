@@ -38,9 +38,9 @@ import "./WanToken.sol";
 /// For more information about this token sale, please visit https://wanchain.org
 /// @author Zane Liang - <zaneliang@wanchain.org>
 contract WanchainContribution is Owned {
-	using SafeMath for uint;
+    using SafeMath for uint;
 
-	/// Constant fields
+    /// Constant fields
     /// Wanchain total tokens supply
 	uint public constant WAN_TOTAL_SUPPLY = 210000000 ether;
     uint public constant MAX_CONTRIBUTION_DURATION = 3 weeks;
@@ -186,8 +186,8 @@ contract WanchainContribution is Owned {
     /// specific limit.
     /// This method should be called by the owner after the initialization
     /// and before the contribution end.
-    // @param setPartnerAddress Partner address
-    // @param limit Limit for the partner address.
+    /// @param setPartnerAddress Partner address
+    /// @param limit Limit for the partner address.
     function setPartnerQuota(address setPartnerAddress, uint256 limit) 
         public 
         initialized 
