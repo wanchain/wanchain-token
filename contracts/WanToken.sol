@@ -130,7 +130,6 @@ contract WanToken is StandardToken {
     ///      Prevent transfers until ICO period is over.
     /// @notice ERC20 interface
     function transfer(address receipent, uint amount)
-        onlyPayloadSize(2 * 32)
         isLaterThan(endTime)
         returns (bool)
     {
@@ -141,7 +140,6 @@ contract WanToken is StandardToken {
     ///      Prevent transfers until ICO period is over.
     /// @notice ERC20 interface
     function transferFrom(address sender, address recipient, uint amount)
-        onlyPayloadSize(3 * 32)
         isLaterThan(endTime)
         returns (bool success)
     {
