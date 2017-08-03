@@ -271,6 +271,9 @@ contract WanchainContribution is Owned {
     /// @dev Buy wanchain tokens by partners
     function buyFromPartner(address receipient) internal {
     	uint partnerAvailable = partnersLimit[receipient].sub(partnersBought[receipient]);
+	uint allAvailable = MAX_OPEN_SOLD.sub(openSoldTokens);
+        partnerAvailable = partnerAvailable.min256(allAvailable);
+
     	require(partnerAvailable > 0);
 
     	uint toFund;
