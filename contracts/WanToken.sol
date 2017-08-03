@@ -63,6 +63,14 @@ contract WanToken is StandardToken {
      * MODIFIERS
      */
 
+    /**
+    * @dev Fix for the ERC20 short address attack.
+    */
+    modifier onlyPayloadSize(uint size) {
+        require(msg.data.length >= size + 4);
+        _;
+    }
+
     modifier onlyMinter {
     	  assert(msg.sender == minter);
     	  _;
@@ -130,6 +138,7 @@ contract WanToken is StandardToken {
     ///      Prevent transfers until ICO period is over.
     /// @notice ERC20 interface
     function transfer(address receipent, uint amount)
+        onlyPayloadSize(2 * 32)
         isLaterThan(endTime)
         returns (bool)
     {
@@ -140,6 +149,7 @@ contract WanToken is StandardToken {
     ///      Prevent transfers until ICO period is over.
     /// @notice ERC20 interface
     function transferFrom(address sender, address recipient, uint amount)
+        onlyPayloadSize(3 * 32)
         isLaterThan(endTime)
         returns (bool success)
     {
