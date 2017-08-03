@@ -157,6 +157,7 @@ contract WanchainContribution is Owned {
     	wanport = _wanport;
     	startTime = _startTime;
     	endTime = startTime + MAX_CONTRIBUTION_DURATION;
+        openSoldTokens = 0;
         /// Create wanchain token contract instance
     	wanToken = new WanToken(this, wanport, startTime, endTime);
 
@@ -237,6 +238,16 @@ contract WanchainContribution is Owned {
     /// @dev Emergency situation
     function changeWalletAddress(address newAddress) onlyWallet { 
         wanport = newAddress; 
+    }
+
+    /// @return true if sale has started, false otherwise.
+    function saleStarted() constant returns (bool) {
+        return now >= startTime;
+    }
+
+    /// @return true if sale has ended, false otherwise.
+    function saleEnded() constant returns (bool) {
+        return now > endTime || openSoldTokens >= MAX_OPEN_SOLD;
     }
 
     /// CONSTANT METHODS
