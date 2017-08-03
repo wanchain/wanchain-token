@@ -14,8 +14,15 @@ import "./SafeMath.sol";
 contract StandardToken is ERC20Protocol {
     using SafeMath for uint;
 
+    /**
+    * @dev Fix for the ERC20 short address attack.
+    */
+    modifier onlyPayloadSize(uint size) {
+        require(msg.data.length >= size + 4);
+        _;
+    }
 
-    function transfer(address _to, uint _value) returns (bool success) {
+    function transfer(address _to, uint _value) onlyPayloadSize(2 * 32) returns (bool success) {
         //Default assumes totalSupply can't be over max (2^256 - 1).
         //If your token leaves out totalSupply and can issue more tokens as time goes on, you need to check if it doesn't wrap.
         //Replace the if with this one instead.
@@ -28,7 +35,7 @@ contract StandardToken is ERC20Protocol {
         } else { return false; }
     }
 
-    function transferFrom(address _from, address _to, uint _value) returns (bool success) {
+    function transferFrom(address _from, address _to, uint _value) onlyPayloadSize(3 * 32) returns (bool success) {
         //same as above. Replace this line with the following if you want to protect against wrapping uints.
         //if (balances[_from] >= _value && allowed[_from][msg.sender] >= _value && balances[_to] + _value > balances[_to]) {
         if (balances[_from] >= _value && allowed[_from][msg.sender] >= _value) {
@@ -44,7 +51,7 @@ contract StandardToken is ERC20Protocol {
         return balances[_owner];
     }
 
-    function approve(address _spender, uint _value) returns (bool success) {
+    function approve(address _spender, uint _value) onlyPayloadSize(2 * 32) returns (bool success) {
         // To change the approve amount you first have to reduce the addresses`
         //  allowance to zero by calling `approve(_spender, 0)` if it is not
         //  already 0 to mitigate the race condition described here:

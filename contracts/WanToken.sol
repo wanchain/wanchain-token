@@ -63,14 +63,6 @@ contract WanToken is StandardToken {
      * MODIFIERS
      */
 
-    /**
-    * @dev Fix for the ERC20 short address attack.
-    */
-    modifier onlyPayloadSize(uint size) {
-        require(msg.data.length >= size + 4);
-        _;
-    }
-
     modifier onlyMinter {
     	  assert(msg.sender == minter);
     	  _;
