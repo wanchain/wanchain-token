@@ -286,7 +286,6 @@ contract WanchainContribution is Owned {
 
     /// @dev Buy wanchain token normally
     function buyNormal(address receipient) internal {
-    	/// TODO: antispam mechanism 
         // Do not allow contracts to game the system
         require(!isContract(msg.sender));
 
