@@ -1,8 +1,8 @@
 {
-  "name": "melontoken",
+  "name": "wanchaintoken",
   "version": "0.0.1",
-  "description": "Token contracts of the Melon contribution.",
-  "author": "Melonport AG",
+  "description": "Token contracts of the wanchain contribution.",
+  "author": "wanchain dev",
   "license": "MIT",
   "devDependencies": {
     "assert": "^1.4.1",
