@@ -42,6 +42,7 @@ contract WanToken is StandardToken {
     /// Constant token specific fields
     string public constant name = "WanCoin";
     string public constant symbol = "WAN";
+    uint public constant decimals = 18;
 
     /// Wanchain total tokens supply
     uint public constant MAX_TOTAL_TOKEN_AMOUNT = 210000000 ether;
