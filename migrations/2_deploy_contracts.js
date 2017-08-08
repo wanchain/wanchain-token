@@ -1,10 +1,14 @@
 var ConvertLib = artifacts.require("./ConvertLib.sol");
-var WanchainContribution = artifacts.require("./WanchainContribution.sol");
+var Math = artifacts.require("./SafeMath.sol");
+var WanChainICO = artifacts.require("./WanchainContribution.sol");
 
-module.exports = function(deployer) {
-  const wanport = '0x32cd3282d33ff58b4ae8402a226a0b27441b7f1a';
-  const startTime = 1483839675;
+module.exports = function(deployer,network, accounts) {
+  var timenow = new Date().getTime();
+  var left = timenow % 1000;
+  var timeseconds = (timenow - left) / 1000;
   deployer.deploy(ConvertLib);
-  deployer.link(ConvertLib, WanchainContribution);
-  deployer.deploy(WanchainContribution, wanport, startTime);
+  deployer.link(ConvertLib, [WanChainICO]);
+  deployer.deploy(Math);
+  deployer.link(Math, [WanChainICO]);
+  deployer.deploy(WanChainICO, accounts[0], timeseconds);
 };
