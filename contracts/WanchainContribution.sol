@@ -193,6 +193,7 @@ contract WanchainContribution is Owned {
         public 
         initialized 
         onlyOwner 
+        notEarlierThan(startTime)
         earlierThan(endTime)
     {
         require(limit > 0 && limit <= MAX_PARTNER_LIMIT);
