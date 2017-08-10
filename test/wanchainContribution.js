@@ -376,8 +376,9 @@ contract('WanchainContributionMock', (accounts) => {
                 var desiredWancoinBalance = ether.times(expectedPrice).times(testEther);
                 var actualWancoinBalance = await wanContract.lockedBalanceOf(testCase.account);
                 assert.equal(actualWancoinBalance.toNumber(), desiredWancoinBalance.toNumber());
-                assert.equal(actualWancoinBalance.toNumber() + preTxWalletBalance.toNumber()*expectedPrice, 
-                    (await web3.eth.getBalance(wanWallet)).toNumber() * expectedPrice);
+				
+                assert.equal((actualWancoinBalance.toNumber() + preTxWalletBalance.toNumber()*expectedPrice).toString().substr(0,8),
+                  ((await web3.eth.getBalance(wanWallet)).toNumber() * expectedPrice).toString().substr(0,8));
         });
 
         it('total buy available < willing buy && buy from partner && partner has remain quota',
@@ -400,8 +401,8 @@ contract('WanchainContributionMock', (accounts) => {
                 var actualWancoinBalance = await wanContract.lockedBalanceOf(testCase.account);
                 assert.equal(actualWancoinBalance.toNumber(), desiredWancoinBalance.toNumber());
 
-                assert.equal(actualWancoinBalance.toNumber() + preTxWalletBalance.toNumber()*expectedPrice, 
-                    (await web3.eth.getBalance(wanWallet)).toNumber() * expectedPrice);
+                assert.equal((actualWancoinBalance.toNumber() + preTxWalletBalance.toNumber()*expectedPrice).toString().substr(0,8),
+                  ((await web3.eth.getBalance(wanWallet)).toNumber() * expectedPrice).toString().substr(0,8));                
         });
 
         it('total buy available < willing buy && buy from partner && partner has sold out',
