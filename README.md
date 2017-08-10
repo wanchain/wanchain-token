@@ -3,13 +3,13 @@
 *At the technical level wanchain-token is a ERC20-compliant tokens.
 
 # Contracts
-*contracts/ConvertLib.sol				:basic truffle framework 
-*contracts/Migrations.sol				:contract for deploy
-*contracts/Owned.sol						:owner contract
-*contracts/SafeMath.sol					:math support lib
-*contracts/StandardToken.sol				:ERC20 standard contract
-*contracts/WanchainContribution.sol		:wanchain token distribution contract
-*contracts/WanToken.sol					:wanchain token contract
+	* contracts/ConvertLib.sol				:basic truffle framework 
+	* contracts/Migrations.sol				:contract for deploy
+	* contracts/Owned.sol						:owner contract
+	* contracts/SafeMath.sol					:math support lib
+	* contracts/StandardToken.sol				:ERC20 standard contract
+	* contracts/WanchainContribution.sol		:wanchain token distribution contract
+	* contracts/WanToken.sol					:wanchain token contract
 
 
 # test
