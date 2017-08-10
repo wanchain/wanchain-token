@@ -1,29 +1,29 @@
-# wanchain-token
 
-## Technical definition
-At the technical level wanchain-token is a ERC20-compliant tokens.
+# Technical definition
+*At the technical level wanchain-token is a ERC20-compliant tokens.
 
-## Contracts
-contracts/ConvertLib.sol				:basic truffle framework 
-contracts/ERC20Protocol.sol				:ERC20 protocol
-contracts/Migrations.sol				:contract for deploy
-contracts/Owned.sol						:owner contract
-contracts/SafeMath.sol					:math support lib
-contracts/StandardToken.sol				:ERC20 standard contract
-contracts/WanchainContribution.sol		:wanchain token distribution contract
-contracts/WanToken.sol					:wanchain token contract
+# Contracts
+*contracts/ConvertLib.sol				:basic truffle framework 
+*contracts/Migrations.sol				:contract for deploy
+*contracts/Owned.sol						:owner contract
+*contracts/SafeMath.sol					:math support lib
+*contracts/StandardToken.sol				:ERC20 standard contract
+*contracts/WanchainContribution.sol		:wanchain token distribution contract
+*contracts/WanToken.sol					:wanchain token contract
 
 
-##test
-prequire
-. platform ubuntu 16.04
-. install node which is lastest version
-. install testrpc on test host
-. git
+#test
 
-how to test
-. start testrpc by command in one terminal:
-  testrpc   --account="0xe3fd2ca91fa6f5a3cbded4ef9fb0f367fe68241db40334216cc0ddedf9233e6c,0x1108b2a2c28029094000000"  \
+##prequire
+
+###platform ubuntu 16.04
+*install node which is lastest version
+*install testrpc on test host
+*git
+
+###how to test
+*start testrpc by command in one terminal:
+  +testrpc --account="0xe3fd2ca91fa6f5a3cbded4ef9fb0f367fe68241db40334216cc0ddedf9233e6c,0x1108b2a2c28029094000000"  \
 			--account="0x49df0a01c3294d23fe5e5f804e56cd97fba955e4c40872165a5a3fbd87f0dc38,0x18b479fe0d0a5aa80000"  \
 			--account="0x9917d8b8e2d6053d1cc75bac6937e5907fb349247ec59b27df64bbe66d128b99,0x1b1ae4d6e2ef5000000"   \
 			--account="0x7a82328b56262463c8bed47968fb57e061ba3eff896c650bb92f209188a39648,0x1b1ae4d6e2ef5000000"  \
@@ -34,19 +34,20 @@ how to test
 			--account="0xfd6709f411ba4a868e6e3cc2663b451549032162a0fd60bcffe8df401f8ad5cd,0x6f05b59d3b200000"     \
 			--account="0xd5930e28e598a24ad215f0144bced054184748818788d92acb23e7c48311b62f,0x6f05b59d3b200000" 
 
-. run command in ./wanchain-token folder:
-  sudo truffle compile && truffle test
+*run command in ./wanchain-token folder:
+  +sudo truffle compile && truffle test
 
 
-##deploy
-. configure the target network for ethereum in truffle.js,such as the mainnet or rinkeby test network for ethereum, change the from address to your avaible account
-. run command in  ./wanchain-token folder to deploy contract on rinkeby test network:
-  truffle migrate --network rinkeby
+#deploy
 
-. run command in  ./wanchain-token folder to deploy contract on main network:
-  truffle migrate --network mainnet
+*configure the target network for ethereum in truffle.js,such as the mainnet or rinkeby test network for ethereum, change the from address to your avaible account
+*run command in  ./wanchain-token folder to deploy contract on rinkeby test network:
+  +truffle migrate --network rinkeby
 
-. after deploying the contract,record the contract address, verify the on https://rinkeby.etherscan.io
+*run command in  ./wanchain-token folder to deploy contract on main network:
+  +truffle migrate --network mainnet
+
+*after deploying the contract,record the contract address, verify the on https://rinkeby.etherscan.io
 
   
   
