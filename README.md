@@ -1,15 +1,15 @@
 
 # Technical definition
-*At the technical level wanchain-token is a ERC20-compliant tokens.
+* At the technical level wanchain-token is a ERC20-compliant tokens.
 
 # Contracts
 	* contracts/ConvertLib.sol				:basic truffle framework 
 	* contracts/Migrations.sol				:contract for deploy
-	* contracts/Owned.sol						:owner contract
-	* contracts/SafeMath.sol					:math support lib
-	* contracts/StandardToken.sol				:ERC20 standard contract
-	* contracts/WanchainContribution.sol		:wanchain token distribution contract
-	* contracts/WanToken.sol					:wanchain token contract
+	* contracts/Owned.sol					:owner contract
+	* contracts/SafeMath.sol				:math support lib
+	* contracts/StandardToken.sol			:ERC20 standard contract
+	* contracts/WanchainContribution.sol	:wanchain token distribution contract
+	* contracts/WanToken.sol				:wanchain token contract
 
 
 # test
@@ -35,7 +35,7 @@
 			--account="0xd5930e28e598a24ad215f0144bced054184748818788d92acb23e7c48311b62f,0x6f05b59d3b200000" 
 
 * run command in ./wanchain-token folder:
-  +sudo truffle compile && truffle test
+  + sudo truffle compile && truffle test
 
 
 # deploy
