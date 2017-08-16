@@ -92,6 +92,10 @@ contract WanchainContribution is Owned {
     /// Fields that can be changed by functions
     /// Accumulator for open sold tokens
     uint openSoldTokens;
+    /// Normal sold tokens
+    uint normalSoldTokens;
+    /// The sum of reserved tokens for ICO stage 1
+    uint partnerReservedSum;
     /// Due to an emergency, set this to true to halt the contribution
     bool public halted; 
     /// ERC20 compilant wanchain token contact instance
@@ -158,6 +162,8 @@ contract WanchainContribution is Owned {
     	startTime = _startTime;
     	endTime = startTime + MAX_CONTRIBUTION_DURATION;
         openSoldTokens = 0;
+        partnerReservedSum = 0;
+        normalSoldTokens = 0;
         /// Create wanchain token contract instance
     	wanToken = new WanToken(this, wanport, startTime, endTime);
 
@@ -198,6 +204,7 @@ contract WanchainContribution is Owned {
     {
         require(limit > 0 && limit <= MAX_PARTNER_LIMIT);
         partnersLimit[setPartnerAddress] = limit;
+        partnerReservedSum += limit;
         PartnerAddressQuota(setPartnerAddress, limit);
     }
 
@@ -290,13 +297,22 @@ contract WanchainContribution is Owned {
         // Do not allow contracts to game the system
         require(!isContract(msg.sender));
 
-        uint tokenAvailable = MAX_OPEN_SOLD.sub(openSoldTokens);
-        require(tokenAvailable != 0);
+        // protect partner quota in stage one
+        uint tokenAvailable;
+        if(startTime <= now && now < startTime + 1 weeks) {
+            uint totalNormalAvailable = MAX_OPEN_SOLD.sub(partnerReservedSum);
+            tokenAvailable = totalNormalAvailable.sub(normalSoldTokens);
+        } else {
+            tokenAvailable = MAX_OPEN_SOLD.sub(openSoldTokens);
+        }
+
+        require(tokenAvailable > 0);
 
     	uint toFund;
     	uint toCollect;
     	(toFund, toCollect) = costAndBuyTokens(tokenAvailable);
         buyCommon(receipient, toFund, toCollect);
+        normalSoldTokens += toCollect;
     }
 
     /// @dev Utility function for bug wanchain token
