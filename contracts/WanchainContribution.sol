@@ -95,7 +95,7 @@ contract WanchainContribution is Owned {
     /// Normal sold tokens
     uint normalSoldTokens;
     /// The sum of reserved tokens for ICO stage 1
-    uint partnerReservedSum;
+    uint public partnerReservedSum;
     /// Due to an emergency, set this to true to halt the contribution
     bool public halted; 
     /// ERC20 compilant wanchain token contact instance

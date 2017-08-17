@@ -26,5 +26,10 @@ contract WanchainContributionMock is WanchainContribution{
 
 	function setMockedPartnerLmit(address partnerAddr, uint _limit){
 		partnersLimit[partnerAddr] = _limit;
-	}	
+	}
+
+  function getMockedPartnerReservedSum() returns (uint) {
+    return partnerReservedSum;
+  }
+
 }
