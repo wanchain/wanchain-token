@@ -685,6 +685,70 @@ contract('WanchainContributionMock', (accounts) => {
     });
 
 
+  // Test suite for public function
+  describe('TESTING FOR  +setPartnerQuota+ test limit and failed buynormal ', () => {
+    beforeEach(resetContractTestEnv);
+
+    it('During ICO', async() => {
+      const testCase = testCases[0];
+      const testCase1 = testCases[1];
+      var buyEther = 5;
+      var expectedPrice = 700;
+
+
+     // await contributionContract.setMockedOpenSoldTokens((2100000* 45) * ether, {from: accounts[0]});
+      await contributionContract.setPartnerQuota(testCase.account, (2100000* 15)* ether, {from: accounts[0]}).catch(() => {});
+      //partiner 1/3
+      var limit = await  contributionContract.partnersLimit(testCase.account);
+      assert.equal(web3.fromWei(limit.toNumber()), (2100000* 15));
+      //normal sell 2/3
+      await contributionContract.setMockedNormalSoldTokens((2100000* 30) * ether, {from: accounts[0]});
+
+
+      var partnerReservedSum = await contributionContract.partnerReservedSum();
+      assert.equal(web3.fromWei(partnerReservedSum.toNumber()), (2100000* 15));
+
+      await wrappedWeb3SendTransaction({from:accounts[1], to:contributionContract.address, value:web3.toWei(buyEther, 'ether'), gas: 1000000}).catch(() => {});
+
+      //post,can not buy anymore
+      var desiredWancoinBalance = new BigNumber(0);
+      var actualWancoinBalance = await wanContract.lockedBalanceOf(accounts[1]);
+
+      assert.equal(actualWancoinBalance.toNumber(), desiredWancoinBalance.toNumber());
+
+    });
+  });
+
+
+  // Test suite for public function
+  describe('TESTING FOR  +setPartnerQuota+ test limit and success buynormal ', () => {
+    beforeEach(resetContractTestEnv);
+
+    it('During ICO', async() => {
+      const testCase = testCases[0];
+      var buyEther = 5;
+      var expectedPrice = 700;
+
+
+     // await contributionContract.setMockedOpenSoldTokens((2100000* 45 - 1000) * ether, {from: accounts[0]});
+      await contributionContract.setPartnerQuota(testCase.account, (2100000* 15)* ether, {from: accounts[0]}).catch(() => {});
+      //partiner 1/3
+      var limit = await  contributionContract.partnersLimit(testCase.account);
+      assert.equal(web3.fromWei(limit.toNumber()), (2100000* 15));
+
+      var partnerReservedSum = await contributionContract.partnerReservedSum();
+      assert.equal(web3.fromWei(partnerReservedSum.toNumber()), (2100000* 15));
+
+      await wrappedWeb3SendTransaction({from:accounts[1], to:contributionContract.address, value:web3.toWei(buyEther, 'ether'), gas: 1000000}).catch(() => {});
+
+      //post,can not buy anymore
+      var desiredWancoinBalance = ether.times(expectedPrice).times(buyEther);
+      var actualWancoinBalance = await wanContract.lockedBalanceOf(accounts[1]);
+
+      assert.equal(actualWancoinBalance.toNumber(), desiredWancoinBalance.toNumber());
+
+    });
+  });
 
 });
 
