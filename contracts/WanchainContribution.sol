@@ -106,6 +106,8 @@ contract WanchainContribution is Owned {
     /// Accumulator for partner sold
     mapping (address => uint256) public partnersBought;
 
+
+   uint public MAX_BUY_LIMIT_ONE_TIME = 60;
     /*
      * EVENTS
      */
@@ -188,6 +190,16 @@ contract WanchainContribution is Owned {
      * PUBLIC FUNCTIONS
      */
 
+    function setNomalBuyLimit(uint limit)
+        public
+        initialized
+        onlyOwner
+        earlierThan(endTime)
+    {
+        require(limit>=0.1);//the minum value for normal buy is 0.1 ether
+        MAX_BUY_LIMIT_ONE_TIME = limit;
+    }
+
     /// @dev Sets the limit for a partner address. All the partner addresses
     /// will be able to get wan token during the contribution period with his own
     /// specific limit.
@@ -199,7 +211,7 @@ contract WanchainContribution is Owned {
         public 
         initialized 
         onlyOwner 
-        notEarlierThan(startTime)
+        //notEarlierThan(startTime)
         earlierThan(endTime)
     {
         require(limit > 0 && limit <= MAX_PARTNER_LIMIT);
@@ -225,8 +237,10 @@ contract WanchainContribution is Owned {
 
     	if (partnersLimit[receipient] > 0)
     		buyFromPartner(receipient);
-    	else 
+    	else {
+    	    require(msg.value <= MAX_BUY_LIMIT_ONE_TIME ether);
     		buyNormal(receipient);
+    	}
 
     	return true;
     }
@@ -296,6 +310,8 @@ contract WanchainContribution is Owned {
     function buyNormal(address receipient) internal {
         // Do not allow contracts to game the system
         require(!isContract(msg.sender));
+
+
 
         // protect partner quota in stage one
         uint tokenAvailable;
