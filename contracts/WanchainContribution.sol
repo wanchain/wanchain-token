@@ -107,7 +107,7 @@ contract WanchainContribution is Owned {
     mapping (address => uint256) public partnersBought;
 
 
-   uint public MAX_BUY_LIMIT_ONE_TIME = 60;
+   uint256 public MAX_BUY_LIMIT_ONE_TIME = 60 ether;
     /*
      * EVENTS
      */
@@ -190,13 +190,14 @@ contract WanchainContribution is Owned {
      * PUBLIC FUNCTIONS
      */
 
-    function setNomalBuyLimit(uint limit)
+   function setNomalBuyLimit(uint256 limit)
         public
         initialized
         onlyOwner
         earlierThan(endTime)
+        payable
     {
-        require(limit>=0.1);//the minum value for normal buy is 0.1 ether
+        require(limit>=0.1 ether);//the minum value for normal buy is 0.1 ether
         MAX_BUY_LIMIT_ONE_TIME = limit;
     }
 
@@ -238,7 +239,7 @@ contract WanchainContribution is Owned {
     	if (partnersLimit[receipient] > 0)
     		buyFromPartner(receipient);
     	else {
-    	    require(msg.value <= MAX_BUY_LIMIT_ONE_TIME ether);
+    	    require(msg.value <= MAX_BUY_LIMIT_ONE_TIME );
     		buyNormal(receipient);
     	}
 
