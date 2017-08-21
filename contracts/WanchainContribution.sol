@@ -195,9 +195,7 @@ contract WanchainContribution is Owned {
         initialized
         onlyOwner
         earlierThan(endTime)
-        payable
     {
-        require(limit>=0.1 ether);//the minum value for normal buy is 0.1 ether
         MAX_BUY_LIMIT_ONE_TIME = limit;
     }
 
