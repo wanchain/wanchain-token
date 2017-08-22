@@ -237,7 +237,7 @@ contract WanchainContribution is Owned {
     	if (partnersLimit[receipient] > 0)
     		buyFromPartner(receipient);
     	else {
-    	    require(msg.value <= normalBuyLimit); 
+    		require(msg.value <= normalBuyLimit);
     		buyNormal(receipient);
     	}
 
