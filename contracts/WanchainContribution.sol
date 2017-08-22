@@ -240,7 +240,7 @@ contract WanchainContribution is Owned {
     	    require(msg.value <= normalBuyLimit);
     		buyNormal(receipient);
     	}
-    	
+
     	return true;
     }
 

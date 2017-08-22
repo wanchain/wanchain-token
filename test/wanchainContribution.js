@@ -750,5 +750,31 @@ contract('WanchainContributionMock', (accounts) => {
     });
   });
 
+
+  describe('TESTING FOR + set MAX_BUY_LIMIT_ONE_TIME,default is 60 eth', () => {
+    beforeEach(resetContractTestEnv);
+
+    it('During ICO', async() => {
+      const testCase = testCases[0];
+      const testCase1 = testCases[1];
+      var buyEther = 5;
+      var expectedPrice = 700;
+
+      //default is 60 ether
+      var limit = await contributionContract.normalBuyLimit();
+      assert.equal(web3.fromWei(limit.toNumber()), 60);
+
+
+      //set buy limit is 2 ether
+      await contributionContract.setNomalBuyLimit(web3.toWei(2, 'ether'), {from: accounts[0]}).catch(() => {});
+      limit = await contributionContract.normalBuyLimit();
+      assert.equal(web3.fromWei(limit.toNumber()), 2);
+
+
+    });
+  });
+
+
+
 });
 
