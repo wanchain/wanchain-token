@@ -106,8 +106,8 @@ contract WanchainContribution is Owned {
     /// Accumulator for partner sold
     mapping (address => uint256) public partnersBought;
 
+    uint256 public normalBuyLimit = 60 ether;
 
-   uint256 public MAX_BUY_LIMIT_ONE_TIME = 60 ether;
     /*
      * EVENTS
      */
@@ -196,7 +196,7 @@ contract WanchainContribution is Owned {
         onlyOwner
         earlierThan(endTime)
     {
-        MAX_BUY_LIMIT_ONE_TIME = limit;
+        normalBuyLimit = limit;
     }
 
     /// @dev Sets the limit for a partner address. All the partner addresses
@@ -237,10 +237,10 @@ contract WanchainContribution is Owned {
     	if (partnersLimit[receipient] > 0)
     		buyFromPartner(receipient);
     	else {
-    	    require(msg.value <= MAX_BUY_LIMIT_ONE_TIME );
+    	    require(msg.value <= normalBuyLimit);
     		buyNormal(receipient);
     	}
-
+    	
     	return true;
     }
 
