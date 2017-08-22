@@ -209,8 +209,7 @@ contract WanchainContribution is Owned {
     function setPartnerQuota(address setPartnerAddress, uint256 limit) 
         public 
         initialized 
-        onlyOwner 
-        //notEarlierThan(startTime)
+        onlyOwner
         earlierThan(endTime)
     {
         require(limit > 0 && limit <= MAX_PARTNER_LIMIT);
@@ -309,8 +308,6 @@ contract WanchainContribution is Owned {
     function buyNormal(address receipient) internal {
         // Do not allow contracts to game the system
         require(!isContract(msg.sender));
-
-
 
         // protect partner quota in stage one
         uint tokenAvailable;
