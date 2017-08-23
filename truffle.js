@@ -53,12 +53,14 @@ module.exports = {
       gasPrice: 20e9,
       from: "0x2d0e7c0813a51d3bd1d08246af2a8a7a57d8922e",
     },
-    // kovan: {
-    //   network_id: 42,
-    //   provider: providerKovan,
-    //   gas: 4000000,
-    //   gasPrice: 20e9,
-    // },
+    kovan: {
+      host: "118.190.71.27",
+      port: 8444,
+      network_id: "42",
+      gas: 5000000,
+      gasPrice: 20e9,
+      from: "0xbef407b3752f6dde4dee2f53b3c8b774fb29af09",
+    }
   }
 };
 
