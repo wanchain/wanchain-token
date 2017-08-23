@@ -50,8 +50,6 @@ contract WanToken is StandardToken {
     /// Fields that are only changed in constructor
     /// Wanchain contribution contract
     address public minter; 
-    /// The escrow account address
-    address public wanWallet; 
     /// ICO start time
     uint public startTime;
     /// ICO end time
@@ -84,13 +82,11 @@ contract WanToken is StandardToken {
      * 
      * @dev Initialize the Wanchain Token
      * @param _minter The Wanchain Contribution Contract     
-     * @param _wanWallet The escrow account address, all ethers will be sent to this address.
      * @param _startTime ICO start time
      * @param _endTime ICO End Time
      */
-    function WanToken(address _minter, address _wanWallet, uint _startTime, uint _endTime){
+    function WanToken(address _minter, uint _startTime, uint _endTime){
     	  minter = _minter;
-    	  wanWallet = _wanWallet;
     	  startTime = _startTime;
     	  endTime = _endTime;
     }

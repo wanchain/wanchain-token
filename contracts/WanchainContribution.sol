@@ -167,7 +167,7 @@ contract WanchainContribution is Owned {
         partnerReservedSum = 0;
         normalSoldTokens = 0;
         /// Create wanchain token contract instance
-    	wanToken = new WanToken(this, wanport, startTime, endTime);
+    	wanToken = new WanToken(this,startTime, endTime);
 
         /// Reserve tokens according wanchain ICO rules
     	uint stakeMultiplier = WAN_TOTAL_SUPPLY / DIVISOR_STAKE;
