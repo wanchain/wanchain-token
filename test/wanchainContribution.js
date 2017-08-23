@@ -766,7 +766,7 @@ contract('WanchainContributionMock', (accounts) => {
             assert.equal(web3.fromWei(limit.toNumber()), 60);
 
             //set buy limit is 2 ether
-            await contributionContract.setNomalBuyLimit(web3.toWei(2, 'ether'), {from: accounts[0]}).catch(() => {});
+            await contributionContract.setNormalBuyLimit(web3.toWei(2, 'ether'), {from: accounts[0]}).catch(() => {});
             limit = await contributionContract.normalBuyLimit();
             assert.equal(web3.fromWei(limit.toNumber()), 2);
 

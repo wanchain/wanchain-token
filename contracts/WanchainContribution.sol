@@ -42,7 +42,7 @@ contract WanchainContribution is Owned {
 
     /// Constant fields
     /// Wanchain total tokens supply
-	uint public constant WAN_TOTAL_SUPPLY = 210000000 ether;
+    uint public constant WAN_TOTAL_SUPPLY = 210000000 ether;
     uint public constant MAX_CONTRIBUTION_DURATION = 3 weeks;
 
     /// Exchange Rates: 1 ether exchange 600 WAN
@@ -190,7 +190,7 @@ contract WanchainContribution is Owned {
      * PUBLIC FUNCTIONS
      */
 
-   function setNomalBuyLimit(uint256 limit)
+   function setNormalBuyLimit(uint256 limit)
         public
         initialized
         onlyOwner
