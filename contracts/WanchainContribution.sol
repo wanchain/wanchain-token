@@ -45,13 +45,12 @@ contract WanchainContribution is Owned {
     uint public constant WAN_TOTAL_SUPPLY = 210000000 ether;
     uint public constant MAX_CONTRIBUTION_DURATION = 3 weeks;
 
-    /// Exchange Rates: 1 ether exchange 600 WAN
-    /// Exchange rates for last phase
-    uint public constant PRICE_RATE_LAST = 600;
     /// Exchange rates for first phase
-    uint public constant PRICE_RATE_FIRST = 700;   //(600 * 1000 / 850) % 10;
+    uint public constant PRICE_RATE_FIRST = 880;
     /// Exchange rates for second phase
-    uint public constant PRICE_RATE_SECOND = 630;  //(600 * 1000 / 950) % 10;
+    uint public constant PRICE_RATE_SECOND = 790;
+    /// Exchange rates for last phase
+    uint public constant PRICE_RATE_LAST = 750;
 
     /// ----------------------------------------------------------------------------------------------------
     /// |                                                  |                    |                 |        |
