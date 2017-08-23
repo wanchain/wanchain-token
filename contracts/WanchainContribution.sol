@@ -205,7 +205,7 @@ contract WanchainContribution is Owned {
     /// This method should be called by the owner after the initialization
     /// and before the contribution end.
     /// @param setPartnerAddress Partner address
-    /// @param limit Limit for the partner address.
+    /// @param limit Limit for the partner address,the limit is WANTOKEN, not ETHER
     function setPartnerQuota(address setPartnerAddress, uint256 limit) 
         public 
         initialized 
