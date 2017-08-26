@@ -78,7 +78,7 @@ contract WanchainContribution is Owned {
     address public constant MINERS_HOLDER = 0xDD91615Ea8De94bC48231c4ae9488891F1648dc5;
 
     uint public MAX_OPEN_SOLD = WAN_TOTAL_SUPPLY * OPEN_SALE_STAKE / DIVISOR_STAKE;
-    uint public MAX_PARTNER_LIMIT = WAN_TOTAL_SUPPLY * (OPEN_SALE_STAKE / 3) / DIVISOR_STAKE;    
+    uint public MAX_PARTNER_LIMIT = WAN_TOTAL_SUPPLY * (OPEN_SALE_STAKE / 2) / DIVISOR_STAKE;
 
     /// Fields that are only changed in constructor    
     /// All deposited ETH will be instantly forwarded to this address.
@@ -105,7 +105,7 @@ contract WanchainContribution is Owned {
     /// Accumulator for partner sold
     mapping (address => uint256) public partnersBought;
 
-    uint256 public normalBuyLimit = 60 ether;
+    uint256 public normalBuyLimit = 65 ether;
 
     /*
      * EVENTS
