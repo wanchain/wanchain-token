@@ -58,15 +58,15 @@ contract WanchainContribution is Owned {
     /// |                       51%                        |         20%        |       19%       |   10%  |    
     /// ----------------------------------------------------------------------------------------------------
     /// OPEN_SALE_STAKE + PRESALE_STAKE = 51; 51% sale for public
-    uint public constant OPEN_SALE_STAKE = 45;  // 45% for open sale
-    uint public constant PRESALE_STAKE = 6;     // 6%  for presale  
+    uint public constant OPEN_SALE_STAKE = 459;  // 45% for open sale
+    uint public constant PRESALE_STAKE = 51;     // 6%  for presale  
 
     // Reserved stakes
-    uint public constant DEV_TEAM_STAKE = 20;   // 20%
-    uint public constant FOUNDATION_STAKE = 19; // 19%
-    uint public constant MINERS_STAKE = 10;     // 10%
+    uint public constant DEV_TEAM_STAKE = 200;   // 20%
+    uint public constant FOUNDATION_STAKE = 190; // 19%
+    uint public constant MINERS_STAKE = 100;     // 10%
 
-    uint public constant DIVISOR_STAKE = 100;
+    uint public constant DIVISOR_STAKE = 1000;
 
     /// Holder address for presale and reserved tokens
     /// TODO: change addressed before deployed to main net
@@ -78,7 +78,7 @@ contract WanchainContribution is Owned {
     address public constant MINERS_HOLDER = 0xDD91615Ea8De94bC48231c4ae9488891F1648dc5;
 
     uint public MAX_OPEN_SOLD = WAN_TOTAL_SUPPLY * OPEN_SALE_STAKE / DIVISOR_STAKE;
-    uint public MAX_PARTNER_LIMIT = WAN_TOTAL_SUPPLY * (OPEN_SALE_STAKE / 2) / DIVISOR_STAKE;
+    uint public MAX_PARTNER_LIMIT = (WAN_TOTAL_SUPPLY * OPEN_SALE_STAKE) /(2*DIVISOR_STAKE);
 
     /// Fields that are only changed in constructor    
     /// All deposited ETH will be instantly forwarded to this address.
