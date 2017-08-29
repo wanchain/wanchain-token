@@ -148,6 +148,12 @@ contract WanchainContribution is Owned {
         _;
     }  
 
+    modifier isSaleEnded() {
+      require(now > endTime || openSoldTokens >= MAX_OPEN_SOLD);
+      _;
+    }
+
+
     /**
      * CONSTRUCTOR 
      * 
@@ -281,6 +287,13 @@ contract WanchainContribution is Owned {
             return PRICE_RATE_LAST;
         // Should not be called before or after contribution period
         assert(false);
+    }
+
+    function claimTokens(address receipent)
+      public
+      isSaleEnded
+    {
+      wanToken.claimTokens(receipent);
     }
 
     /*

@@ -56,8 +56,7 @@ contract WanToken is StandardToken {
     uint public endTime;
 
     /// Fields that can be changed by functions
-    mapping (address => uint) lockedBalances;
-
+    mapping (address => uint) public lockedBalances;
     /*
      * MODIFIERS
      */
@@ -117,7 +116,7 @@ contract WanToken is StandardToken {
     /// @dev Locking period has passed - Locked tokens have turned into tradeable
     ///      All tokens owned by receipent will be tradeable
     function claimTokens(address receipent)
-        isLaterThan(endTime)
+        public
     {
       	balances[receipent] = balances[receipent].add(lockedBalances[receipent]);
       	lockedBalances[receipent] = 0;
