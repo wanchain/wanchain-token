@@ -293,7 +293,7 @@ contract WanchainContribution is Owned {
         public
         isSaleEnded
     {
-      wanToken.claimTokens(receipent);
+        wanToken.claimTokens(receipent);
     }
 
     /*
