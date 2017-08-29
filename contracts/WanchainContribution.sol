@@ -149,8 +149,8 @@ contract WanchainContribution is Owned {
     }  
 
     modifier isSaleEnded() {
-      require(now > endTime || openSoldTokens >= MAX_OPEN_SOLD);
-      _;
+        require(now > endTime || openSoldTokens >= MAX_OPEN_SOLD);
+        _;
     }
 
 
@@ -290,8 +290,8 @@ contract WanchainContribution is Owned {
     }
 
     function claimTokens(address receipent)
-      public
-      isSaleEnded
+        public
+        isSaleEnded
     {
       wanToken.claimTokens(receipent);
     }
