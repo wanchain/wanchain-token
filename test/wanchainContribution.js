@@ -675,13 +675,6 @@ contract('WanchainContributionMock', (accounts) => {
 
         var partnerReservedSum = await contributionContract.partnerReservedSum();
         assert.equal(web3.fromWei(partnerReservedSum.toNumber()), 1000);
-
-        // await wrappedWeb3SendTransaction({from:testCase.account, to:contributionContract.address, value:web3.toWei(buyEther, 'ether'), gas: 1000000})
-        //   .catch(() => {});
-        // //post
-        // var desiredWancoinBalance = ether.times(partnerAvailable);
-        // var actualWancoinBalance = await wanContract.lockedBalanceOf(testCase.account);
-        // assert.equal(actualWancoinBalance.toNumber(), desiredWancoinBalance.toNumber());
       });
     });
 
@@ -786,8 +779,6 @@ contract('WanchainContributionMock', (accounts) => {
       assert.equal(actualWancoinBalance.toNumber(), desiredWancoinBalance.toNumber());
 
     });
-
-
   });
 
 
