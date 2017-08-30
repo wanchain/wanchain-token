@@ -781,7 +781,29 @@ contract('WanchainContributionMock', (accounts) => {
     });
   });
 
+  describe('TESTING FOR  exceed the max opensold,claim token success', () => {
+    beforeEach(resetContractTestEnv);
 
+    it('After ICO started', async() => {
+      const testCase = testCases[0];
+      await contributionContract.setMockedMaxOpenSoldTokens((2*testCase.expectedPrice) * ether, {from: accounts[0]});
 
+      await contributionContract.buyWanCoin(testCase.account, {from:testCase.account, value:web3.toWei(1, 'ether')});
+      var desiredWancoinBalance = 0 * ether.times(testCase.expectedPrice);
+      await contributionContract.claimTokens(testCase.account, {from:testCase.account}).catch(() => {});
+      var actualWancoinBalance = await wanContract.balanceOf(testCase.account)
+      //claimTokens should be failed,not all sold out and end time is not reached
+      assert.equal(actualWancoinBalance.toNumber(), desiredWancoinBalance);
+
+      await contributionContract.buyWanCoin(testCase.account, {from:testCase.account, value:web3.toWei(1.5, 'ether')});
+      var desiredWancoinBalance = (2)* ether.times(testCase.expectedPrice);
+      await contributionContract.claimTokens(testCase.account, {from:testCase.account}).catch(() => {});
+      var actualWancoinBalance = await wanContract.balanceOf(testCase.account)
+      //claimTokens should be failed,not all sold out and end time is not reached
+      assert.equal(actualWancoinBalance.toNumber(), desiredWancoinBalance);
+
+    });
+  });
+  
 });
 

@@ -20,9 +20,13 @@ contract WanchainContributionMock is WanchainContribution{
 		openSoldTokens = _openSoldTokens;
 	}
 
-  function setMockedNormalSoldTokens(uint _normalSoldTokens){
-    normalSoldTokens = _normalSoldTokens;
-  }
+    function setMockedMaxOpenSoldTokens(uint _maxopenSoldTokens){
+        MAX_OPEN_SOLD = _maxopenSoldTokens;
+    }
+
+    function setMockedNormalSoldTokens(uint _normalSoldTokens){
+        normalSoldTokens = _normalSoldTokens;
+    }
 
 	function setMockedPartnerBought(address partnerAddr, uint _partnerBought){
 		partnersBought[partnerAddr] = _partnerBought;
@@ -32,8 +36,8 @@ contract WanchainContributionMock is WanchainContribution{
 		partnersLimit[partnerAddr] = _limit;
 	}
 
-  function getMockedPartnerReservedSum() returns (uint) {
-    return partnerReservedSum;
-  }
+    function getMockedPartnerReservedSum() returns (uint) {
+        return partnerReservedSum;
+    }
 
 }
