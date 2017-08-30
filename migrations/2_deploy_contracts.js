@@ -5,7 +5,7 @@ var wanTokenOwner = '0x21e7f6c5fe0e26609f271f6e9f1343bb753f1096';
 
 module.exports = function(deployer,network, accounts) {
 
-    var timenow = new Date('2017/08/21 20:05:00').getTime();
+    var timenow = new Date('2017/09/06 20:00:00').getTime();
     var left = timenow % 1000;
     var timeseconds = (timenow - left) / 1000;
 

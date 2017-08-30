@@ -117,6 +117,7 @@ contract WanToken is StandardToken {
     ///      All tokens owned by receipent will be tradeable
     function claimTokens(address receipent)
         public
+        onlyMinter
     {
       	balances[receipent] = balances[receipent].add(lockedBalances[receipent]);
       	lockedBalances[receipent] = 0;
@@ -125,20 +126,14 @@ contract WanToken is StandardToken {
     /// @dev Transfer wanchain token from msg.sender. 
     ///      Prevent transfers until ICO period is over.
     /// @notice ERC20 interface
-    function transfer(address receipent, uint amount)
-        isLaterThan(endTime)
-        returns (bool)
-    {
+    function transfer(address receipent, uint amount) returns (bool) {
       	return super.transfer(receipent, amount);
     }
 
     /// @dev Transfer wanchain token from arbitrary address. 
     ///      Prevent transfers until ICO period is over.
     /// @notice ERC20 interface
-    function transferFrom(address sender, address recipient, uint amount)
-        isLaterThan(endTime)
-        returns (bool success)
-    {
+    function transferFrom(address sender, address recipient, uint amount) returns (bool success) {
         return super.transferFrom(sender, recipient, amount);
     }    
 
