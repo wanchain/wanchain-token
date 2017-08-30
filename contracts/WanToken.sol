@@ -123,20 +123,6 @@ contract WanToken is StandardToken {
       	lockedBalances[receipent] = 0;
     }
 
-    /// @dev Transfer wanchain token from msg.sender. 
-    ///      Prevent transfers until ICO period is over.
-    /// @notice ERC20 interface
-    function transfer(address receipent, uint amount) returns (bool) {
-      	return super.transfer(receipent, amount);
-    }
-
-    /// @dev Transfer wanchain token from arbitrary address. 
-    ///      Prevent transfers until ICO period is over.
-    /// @notice ERC20 interface
-    function transferFrom(address sender, address recipient, uint amount) returns (bool success) {
-        return super.transferFrom(sender, recipient, amount);
-    }    
-
     /*
      * CONSTANT METHODS
      */
