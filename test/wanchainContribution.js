@@ -804,6 +804,6 @@ contract('WanchainContributionMock', (accounts) => {
 
     });
   });
-  
+
 });
 

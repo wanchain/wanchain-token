@@ -57,9 +57,9 @@ contract WanchainContribution is Owned {
     /// |        PUBLIC SALE (PRESALE + OPEN SALE)         |      DEV TEAM      |    FOUNDATION   |  MINER |
     /// |                       51%                        |         20%        |       19%       |   10%  |    
     /// ----------------------------------------------------------------------------------------------------
-    /// OPEN_SALE_STAKE + PRESALE_STAKE = 51; 51% sale for public
-    uint public constant OPEN_SALE_STAKE = 459;  // 45% for open sale
-    uint public constant PRESALE_STAKE = 51;     // 6%  for presale  
+      /// OPEN_SALE_STAKE + PRESALE_STAKE = 51; 51% sale for public
+      uint public constant OPEN_SALE_STAKE = 459;  // 45.9% for open sale
+      uint public constant PRESALE_STAKE = 51;     // 5.1%  for presale
 
     // Reserved stakes
     uint public constant DEV_TEAM_STAKE = 200;   // 20%
