@@ -57,23 +57,24 @@ contract WanToken is StandardToken {
 
     /// Fields that can be changed by functions
     mapping (address => uint) public lockedBalances;
+    
     /*
      * MODIFIERS
      */
 
     modifier onlyMinter {
-    	  assert(msg.sender == minter);
-    	  _;
+        assert(msg.sender == minter);
+        _;
     }
 
     modifier isLaterThan (uint x){
-    	  assert(now > x);
-    	  _;
+        assert(now > x);
+        _;
     }
 
     modifier maxWanTokenAmountNotReached (uint amount){
-    	  assert(totalSupply.add(amount) <= MAX_TOTAL_TOKEN_AMOUNT);
-    	  _;
+        assert(totalSupply.add(amount) <= MAX_TOTAL_TOKEN_AMOUNT);
+        _;
     }
 
     /**
@@ -85,9 +86,9 @@ contract WanToken is StandardToken {
      * @param _endTime ICO End Time
      */
     function WanToken(address _minter, uint _startTime, uint _endTime){
-    	  minter = _minter;
-    	  startTime = _startTime;
-    	  endTime = _endTime;
+        minter = _minter;
+        startTime = _startTime;
+        endTime = _endTime;
     }
 
     /**

@@ -57,9 +57,9 @@ contract WanchainContribution is Owned {
     /// |        PUBLIC SALE (PRESALE + OPEN SALE)         |      DEV TEAM      |    FOUNDATION   |  MINER |
     /// |                       51%                        |         20%        |       19%       |   10%  |    
     /// ----------------------------------------------------------------------------------------------------
-      /// OPEN_SALE_STAKE + PRESALE_STAKE = 51; 51% sale for public
-      uint public constant OPEN_SALE_STAKE = 459;  // 45.9% for open sale
-      uint public constant PRESALE_STAKE = 51;     // 5.1%  for presale
+    /// OPEN_SALE_STAKE + PRESALE_STAKE = 51; 51% sale for public
+    uint public constant OPEN_SALE_STAKE = 459;  // 45.9% for open sale
+    uint public constant PRESALE_STAKE = 51;     // 5.1%  for presale
 
     // Reserved stakes
     uint public constant DEV_TEAM_STAKE = 200;   // 20%
@@ -194,7 +194,8 @@ contract WanchainContribution is Owned {
      * PUBLIC FUNCTIONS
      */
 
-   function setNormalBuyLimit(uint256 limit)
+    /// @dev Sets the limit for a normal buy wancoin
+    function setNormalBuyLimit(uint256 limit)
         public
         initialized
         onlyOwner
@@ -301,18 +302,18 @@ contract WanchainContribution is Owned {
 
     /// @dev Buy wanchain tokens by partners
     function buyFromPartner(address receipient) internal {
-    	uint partnerAvailable = partnersLimit[receipient].sub(partnersBought[receipient]);
-	uint allAvailable = MAX_OPEN_SOLD.sub(openSoldTokens);
+        uint partnerAvailable = partnersLimit[receipient].sub(partnersBought[receipient]);
+        uint allAvailable = MAX_OPEN_SOLD.sub(openSoldTokens);
         partnerAvailable = partnerAvailable.min256(allAvailable);
 
-    	require(partnerAvailable > 0);
+        require(partnerAvailable > 0);
 
-    	uint toFund;
-    	uint toCollect;
-    	(toFund,  toCollect)= costAndBuyTokens(partnerAvailable);
+        uint toFund;
+        uint toCollect;
+        (toFund,  toCollect)= costAndBuyTokens(partnerAvailable);
 
-    	partnersBought[receipient] = partnersBought[receipient].add(toCollect);
-    	buyCommon(receipient, toFund, toCollect);
+        partnersBought[receipient] = partnersBought[receipient].add(toCollect);
+        buyCommon(receipient, toFund, toCollect);
     }
 
     /// @dev Buy wanchain token normally
