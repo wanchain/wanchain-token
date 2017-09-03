@@ -58,7 +58,7 @@ contract WanchainContribution is Owned {
     /// |                       51%                        |         20%        |       19%       |   10%  |    
     /// ----------------------------------------------------------------------------------------------------
       /// OPEN_SALE_STAKE + PRESALE_STAKE = 51; 51% sale for public
-      uint public constant OPEN_SALE_STAKE = 510;  // 51% for open sale
+    uint public constant OPEN_SALE_STAKE = 510;  // 51% for open sale
 
     // Reserved stakes
     uint public constant DEV_TEAM_STAKE = 200;   // 20%
