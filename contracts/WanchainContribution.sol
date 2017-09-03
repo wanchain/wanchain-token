@@ -58,8 +58,7 @@ contract WanchainContribution is Owned {
     /// |                       51%                        |         20%        |       19%       |   10%  |    
     /// ----------------------------------------------------------------------------------------------------
       /// OPEN_SALE_STAKE + PRESALE_STAKE = 51; 51% sale for public
-      uint public constant OPEN_SALE_STAKE = 510;  // 45.9% for open sale
-      uint public constant PRESALE_STAKE = 51;     // 5.1%  for presale
+      uint public constant OPEN_SALE_STAKE = 510;  // 51% for open sale
 
     // Reserved stakes
     uint public constant DEV_TEAM_STAKE = 200;   // 20%
@@ -177,12 +176,13 @@ contract WanchainContribution is Owned {
 
         /// Reserve tokens according wanchain ICO rules
     	uint stakeMultiplier = WAN_TOTAL_SUPPLY / DIVISOR_STAKE;
-
+		
         wanToken.mintToken(DEV_TEAM_HOLDER, DEV_TEAM_STAKE * stakeMultiplier);
         wanToken.mintToken(FOUNDATION_HOLDER, FOUNDATION_STAKE * stakeMultiplier);
         wanToken.mintToken(MINERS_HOLDER, MINERS_STAKE * stakeMultiplier);
 		
-		wanToken.mintToken(PRESALE_PRIZE_HOLDER, PRESALE_PRIZE_AMOUNT);
+        wanToken.mintToken(PRESALE_PRIZE_HOLDER, PRESALE_PRIZE_AMOUNT);		
+		
     }
 
     /**
