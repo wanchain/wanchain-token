@@ -58,7 +58,7 @@ contract WanchainContribution is Owned {
     /// |                       51%                        |         20%        |       19%       |   10%  |    
     /// ----------------------------------------------------------------------------------------------------
       /// OPEN_SALE_STAKE + PRESALE_STAKE = 51; 51% sale for public
-      uint public constant OPEN_SALE_STAKE = 459;  // 45.9% for open sale
+      uint public constant OPEN_SALE_STAKE = 510;  // 45.9% for open sale
       uint public constant PRESALE_STAKE = 51;     // 5.1%  for presale
 
     // Reserved stakes
@@ -68,16 +68,18 @@ contract WanchainContribution is Owned {
 
     uint public constant DIVISOR_STAKE = 1000;
 
+    uint public constant PRESALE_PRIZE_AMOUNT = 1910000 ether; //presale prize amount(10710000-880*10000)
+	
     /// Holder address for presale and reserved tokens
     /// TODO: change addressed before deployed to main net
-    address public constant PRESALE_HOLDER = 0x009beAE06B0c0C536ad1eA43D6f61DCCf0748B1f;
 
     // Addresses of Patrons
     address public constant DEV_TEAM_HOLDER = 0xB1EFca62C555b49E67363B48aE5b8Af3C7E3e656;
     address public constant FOUNDATION_HOLDER = 0x00779e0e4c6083cfd26dE77B4dbc107A7EbB99d2;
     address public constant MINERS_HOLDER = 0xDD91615Ea8De94bC48231c4ae9488891F1648dc5;
-
-    uint public MAX_OPEN_SOLD = WAN_TOTAL_SUPPLY * OPEN_SALE_STAKE / DIVISOR_STAKE;
+    address public constant PRESALE_PRIZE_HOLDER = 0x8edc40947056e17801f68de069373a0b98c16eaf;
+	
+    uint public MAX_OPEN_SOLD = WAN_TOTAL_SUPPLY * OPEN_SALE_STAKE / DIVISOR_STAKE - PRESALE_PRIZE_AMOUNT;
 
     /// Fields that are only changed in constructor    
     /// All deposited ETH will be instantly forwarded to this address.
@@ -175,10 +177,12 @@ contract WanchainContribution is Owned {
 
         /// Reserve tokens according wanchain ICO rules
     	uint stakeMultiplier = WAN_TOTAL_SUPPLY / DIVISOR_STAKE;
-    	wanToken.mintToken(PRESALE_HOLDER, PRESALE_STAKE * stakeMultiplier);
+
         wanToken.mintToken(DEV_TEAM_HOLDER, DEV_TEAM_STAKE * stakeMultiplier);
         wanToken.mintToken(FOUNDATION_HOLDER, FOUNDATION_STAKE * stakeMultiplier);
         wanToken.mintToken(MINERS_HOLDER, MINERS_STAKE * stakeMultiplier);
+		
+		wanToken.mintToken(PRESALE_PRIZE_HOLDER, PRESALE_PRIZE_AMOUNT);
     }
 
     /**
