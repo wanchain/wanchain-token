@@ -18,15 +18,6 @@ module.exports = {
       gasPrice: 20e9,
       from: "0xf93df8c288b9020e76583a6997362e89e0599e99",
     },
-
-    mainnet: {
-      host: "118.190.71.27",
-      port: 8745,
-      network_id: "*", // Match any network id
-      gas: 4000000,
-      gasPrice: 20e9,
-      from:"0x96fe33e72f758114de310a38d871696519cccf62",
-    },
     ropsten: {
       host: "114.215.69.125",
       port: 8545,
