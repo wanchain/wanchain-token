@@ -43,6 +43,7 @@ contract WanchainContribution is Owned {
     /// Constant fields
     /// Wanchain total tokens supply
     uint public constant WAN_TOTAL_SUPPLY = 210000000 ether;
+    uint public constant EARLY_CONTRIBUTION_DURATION = 24 hours;
     uint public constant MAX_CONTRIBUTION_DURATION = 3 weeks;
 
     /// Exchange rates for first phase
@@ -67,7 +68,7 @@ contract WanchainContribution is Owned {
 
     uint public constant DIVISOR_STAKE = 1000;
 
-    uint public constant PRESALE_PRIZE_AMOUNT = 1910000 ether; //presale prize amount(10710000-880*10000)
+    uint public constant PRESALE_RESERVERED_AMOUNT = 35200000 ether; //presale prize amount(40000*880)
 	
     /// Holder address for presale and reserved tokens
     /// TODO: change addressed before deployed to main net
@@ -76,13 +77,15 @@ contract WanchainContribution is Owned {
     address public constant DEV_TEAM_HOLDER = 0xB1EFca62C555b49E67363B48aE5b8Af3C7E3e656;
     address public constant FOUNDATION_HOLDER = 0x00779e0e4c6083cfd26dE77B4dbc107A7EbB99d2;
     address public constant MINERS_HOLDER = 0xDD91615Ea8De94bC48231c4ae9488891F1648dc5;
-    address public constant PRESALE_PRIZE_HOLDER = 0x8edc40947056e17801f68de069373a0b98c16eaf;
+    address public constant PRESALE_HOLDER = 0x25a1459D8845Eb3382245Ff5F955774958dc3211;
 	
-    uint public MAX_OPEN_SOLD = WAN_TOTAL_SUPPLY * OPEN_SALE_STAKE / DIVISOR_STAKE - PRESALE_PRIZE_AMOUNT;
+    uint public MAX_OPEN_SOLD = WAN_TOTAL_SUPPLY * OPEN_SALE_STAKE / DIVISOR_STAKE - PRESALE_RESERVERED_AMOUNT;
 
     /// Fields that are only changed in constructor    
     /// All deposited ETH will be instantly forwarded to this address.
     address public wanport;
+    /// Early Adopters reserved start time
+    uint public earlyReserveBeginTime;
     /// Contribution start time
     uint public startTime;
     /// Contribution end time
@@ -91,19 +94,15 @@ contract WanchainContribution is Owned {
     /// Fields that can be changed by functions
     /// Accumulator for open sold tokens
     uint openSoldTokens;
-    /// Normal sold tokens
-    uint normalSoldTokens;
-    /// The sum of reserved tokens for ICO stage 1
-    uint public partnerReservedSum;
     /// Due to an emergency, set this to true to halt the contribution
     bool public halted; 
     /// ERC20 compilant wanchain token contact instance
     WanToken public wanToken; 
 
-    /// Quota for partners
-    mapping (address => uint256) public partnersLimit;
-    /// Accumulator for partner sold
-    mapping (address => uint256) public partnersBought;
+    /// Quota for early adopters sale, Quota
+    mapping (address => uint256) public earlyUserQuotas;
+    /// tags show address can join in open sale
+    mapping (address => uint256) public fullWhiteList;
 
     uint256 public normalBuyLimit = 65 ether;
 
@@ -112,7 +111,7 @@ contract WanchainContribution is Owned {
      */
 
     event NewSale(address indexed destAddress, uint ethCost, uint gotTokens);
-    event PartnerAddressQuota(address indexed partnerAddress, uint quota);
+    //event PartnerAddressQuota(address indexed partnerAddress, uint quota);
 
     /*
      * MODIFIERS
@@ -159,18 +158,17 @@ contract WanchainContribution is Owned {
      * 
      * @dev Initialize the Wanchain contribution contract
      * @param _wanport The escrow account address, all ethers will be sent to this address.
-     * @param _startTime ICO start time
+     * @param _bootTime ICO boot time
      */
-    function WanchainContribution(address _wanport, uint _startTime){
+    function WanchainContribution(address _wanport, uint _bootTime){
     	require(_wanport != 0x0);
 
         halted = false;
     	wanport = _wanport;
-    	startTime = _startTime;
+        earlyReserveBeginTime = _bootTime;
+    	startTime = earlyReserveBeginTime + EARLY_CONTRIBUTION_DURATION;
     	endTime = startTime + MAX_CONTRIBUTION_DURATION;
         openSoldTokens = 0;
-        partnerReservedSum = 0;
-        normalSoldTokens = 0;
         /// Create wanchain token contract instance
     	wanToken = new WanToken(this,startTime, endTime);
 
@@ -181,7 +179,7 @@ contract WanchainContribution is Owned {
         wanToken.mintToken(FOUNDATION_HOLDER, FOUNDATION_STAKE * stakeMultiplier);
         wanToken.mintToken(MINERS_HOLDER, MINERS_STAKE * stakeMultiplier);
 		
-        wanToken.mintToken(PRESALE_PRIZE_HOLDER, PRESALE_PRIZE_AMOUNT);		
+        wanToken.mintToken(PRESALE_HOLDER, PRESALE_RESERVERED_AMOUNT);		
 		
     }
 
@@ -207,23 +205,29 @@ contract WanchainContribution is Owned {
         normalBuyLimit = limit;
     }
 
-    /// @dev Sets the limit for a partner address. All the partner addresses
-    /// will be able to get wan token during the contribution period with his own
-    /// specific limit.
-    /// This method should be called by the owner after the initialization
-    /// and before the contribution end.
-    /// @param setPartnerAddress Partner address
-    /// @param limit Limit for the partner address,the limit is WANTOKEN, not ETHER
-    function setPartnerQuota(address setPartnerAddress, uint256 limit) 
-        public 
-        initialized 
+
+    /// @dev batch set quota for early user quota
+    function setEarlyWhitelistQuotas(address[] users, uint earlyCap, uint openTag)
+        public
+        onlyOwner
+        earlierThan(earlyReserveBeginTime)
+    {
+        for( uint i = 0; i < users.length; i++) {
+            earlyUserQuotas[users[i]] = earlyCap;
+            fullWhiteList[users[i]] = openTag;
+        }
+    }
+
+    /// @dev batch set quota for early user quota
+    function setLaterWhiteList(address[] users, uint openTag)
+        public
         onlyOwner
         earlierThan(endTime)
     {
-        require(limit > 0 && limit <= MAX_OPEN_SOLD);
-        partnersLimit[setPartnerAddress] = limit;
-        partnerReservedSum += limit;
-        PartnerAddressQuota(setPartnerAddress, limit);
+        require(saleInProgress());
+        for( uint i = 0; i < users.length; i++) {
+            fullWhiteList[users[i]] = openTag;
+        }
     }
 
     /// @dev Exchange msg.value ether to WAN for account recepient
@@ -234,15 +238,18 @@ contract WanchainContribution is Owned {
         notHalted 
         initialized 
         ceilingNotReached 
-        notEarlierThan(startTime)
+        notEarlierThan(earlyReserveBeginTime)
         earlierThan(endTime)
         returns (bool) 
     {
     	require(receipient != 0x0);
     	require(msg.value >= 0.1 ether);
 
-    	if (partnersLimit[receipient] > 0)
-    		buyFromPartner(receipient);
+        // Do not allow contracts to game the system
+        require(!isContract(msg.sender));        
+
+        if( now < startTime && now > earlyReserveBeginTime)
+            buyEarlyAdopters(receipient);
     	else {
     		require(msg.value <= normalBuyLimit);
     		buyNormal(receipient);
@@ -273,16 +280,16 @@ contract WanchainContribution is Owned {
         return now >= startTime;
     }
 
-    /// @return true if sale has ended, false otherwise.
-    function saleEnded() constant returns (bool) {
-        return now > endTime || openSoldTokens >= MAX_OPEN_SOLD;
+    /// @return true if sale in ended, false otherwise.
+    function saleInProgress() constant returns (bool) {
+        return now < endTime && openSoldTokens < MAX_OPEN_SOLD;
     }
 
     /// CONSTANT METHODS
     /// @dev Get current exchange rate
     function priceRate() public constant returns (uint) {
         // Three price tiers
-        if (startTime <= now && now < startTime + 1 weeks)
+        if (earlyReserveBeginTime <= now && now < startTime + 1 weeks)
             return PRICE_RATE_FIRST;
         if (startTime + 1 weeks <= now && now < startTime + 2 weeks)
             return PRICE_RATE_SECOND;
@@ -303,43 +310,31 @@ contract WanchainContribution is Owned {
      * INTERNAL FUNCTIONS
      */
 
-    /// @dev Buy wanchain tokens by partners
-    function buyFromPartner(address receipient) internal {
-    	uint partnerAvailable = partnersLimit[receipient].sub(partnersBought[receipient]);
-	uint allAvailable = MAX_OPEN_SOLD.sub(openSoldTokens);
-        partnerAvailable = partnerAvailable.min256(allAvailable);
+    /// @dev Buy wanchain tokens for early adopters
+    function buyEarlyAdopters(address receipient) internal {
+    	uint quotaAvailable = earlyUserQuotas[receipient];
+    	require(quotaAvailable > 0);
 
-    	require(partnerAvailable > 0);
+        uint toFund = quotaAvailable.min256(msg.value);
+        uint tokenAvailable4Adopter = quotaAvailable.mul(PRICE_RATE_FIRST);
 
-    	uint toFund;
-    	uint toCollect;
-    	(toFund,  toCollect)= costAndBuyTokens(partnerAvailable);
-
-    	partnersBought[receipient] = partnersBought[receipient].add(toCollect);
-    	buyCommon(receipient, toFund, toCollect);
+    	earlyUserQuotas[receipient] = earlyUserQuotas[receipient].sub(toFund);
+    	buyCommon(receipient, toFund, tokenAvailable4Adopter);
     }
 
     /// @dev Buy wanchain token normally
     function buyNormal(address receipient) internal {
-        // Do not allow contracts to game the system
-        require(!isContract(msg.sender));
+        uint inWhiteListTag = fullWhiteList[receipient];
+        require(inWhiteListTag > 0);
 
         // protect partner quota in stage one
-        uint tokenAvailable;
-        if(startTime <= now && now < startTime + 1 weeks) {
-            uint totalNormalAvailable = MAX_OPEN_SOLD.sub(partnerReservedSum);
-            tokenAvailable = totalNormalAvailable.sub(normalSoldTokens);
-        } else {
-            tokenAvailable = MAX_OPEN_SOLD.sub(openSoldTokens);
-        }
-
+        uint tokenAvailable = MAX_OPEN_SOLD.sub(openSoldTokens);
         require(tokenAvailable > 0);
 
     	uint toFund;
     	uint toCollect;
     	(toFund, toCollect) = costAndBuyTokens(tokenAvailable);
         buyCommon(receipient, toFund, toCollect);
-        normalSoldTokens += toCollect;
     }
 
     /// @dev Utility function for bug wanchain token
