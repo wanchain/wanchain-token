@@ -321,7 +321,6 @@ contract('WanchainContributionMock', (accounts) => {
 
             var preTxWalletBalance = await web3.fromWei(web3.eth.getBalance(wanWallet));    
             var preTokens = await web3.fromWei(await wanContract.lockedBalanceOf(accounts[3]));
-            console.log('preTokens:' + preTokens);        
             await wrappedWeb3SendTransaction({
                 from: accounts[3],
                 to:contributionContract.address,
