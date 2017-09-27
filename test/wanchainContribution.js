@@ -115,6 +115,13 @@ contract('WanchainContributionMock', (accounts) => {
 
     const DefaultEarlyQuota = 6;
 
+    const STAGE_BEFOR_EARLYRESERVED = -1;
+    const STAGE_EARLY_RESERVED = 0
+    const STAGE_1 = 1 ;    
+    const STAGE_2 = 2 ;
+    const STAGE_3 = 3 ;
+    const STAGE_ENDED = 4;
+
     function wrappedWeb3SendTransaction(obj, showLog) {
         return new Promise( (resolve, reject) => {
             web3.eth.sendTransaction(obj, function(err, result){
@@ -165,6 +172,42 @@ contract('WanchainContributionMock', (accounts) => {
         wanContract = WanToken.at(await contributionContract.wanToken());
 
         endTime = startTime + (3 * weeks);    
+    }
+
+    async function assertWalletReceivedFund(prevBalance, receivedFundInEther){
+        var postWalletBalance = await web3.fromWei(web3.eth.getBalance(wanWallet));
+        assert.equal(postWalletBalance.sub(prevBalance),  receivedFundInEther);        
+    }
+
+    async function assertWalletReceivedFundNearly(prevBalance, receivedFundInEther){
+        var postWalletBalance = await web3.fromWei(web3.eth.getBalance(wanWallet));
+        assert.ok(postWalletBalance.sub(prevBalance).sub(receivedFundInEther).abs() < 0.01);        
+    }
+
+
+    async function assertUserReceivedLockedToken(addr, prevBalance, receivedTokenInEther, log){
+        var postUserTokens = await web3.fromWei(await wanContract.lockedBalanceOf(addr));
+        if(log){
+            console.log('pre: ' + prevBalance);
+            console.log('post: ' + postUserTokens);
+            console.log('postUserTokens.sub(prevBalance): ' + postUserTokens.sub(prevBalance));
+            console.log('receivedTokenInEther: ' + receivedTokenInEther);
+        }
+        assert.equal(postUserTokens.sub(prevBalance),  receivedTokenInEther);
+    }
+
+    async function mockAddrToEarlyList(addr){
+            earlyReserveBeginTime = await contributionContract.earlyReserveBeginTime();
+            await contributionContract.setMockedEarlyReserveBeginTime(earlyReserveBeginTime + 100000);
+            await contributionContract.setEarlyWhitelistQuotas(accounts, web3.toWei(DefaultEarlyQuota, 'ether'), 1, {from: accounts[0]});        
+            await contributionContract.setMockedEarlyReserveBeginTime(earlyReserveBeginTime);
+    }
+
+    async function mockNowInStage3(){
+        earlyReserveBeginTime = await contributionContract.earlyReserveBeginTime();
+        await contributionContract.setMockedEarlyReserveBeginTime(earlyReserveBeginTime - 2*weeks - EARLY_CONTRIBUTION_DURATION);
+        await contributionContract.setMockedStartTime(earlyReserveBeginTime - 2 * weeks - 1* hours);
+        await contributionContract.setMockedEndTime(earlyReserveBeginTime - 2 * weeks - 1* hours + 3 * weeks);        
     }
     
     describe('PREPARATIONS', () => {
@@ -220,8 +263,19 @@ contract('WanchainContributionMock', (accounts) => {
     wanWallet = accounts[6];
     describe('TESTING FOR  +Fallback+ ', () => {
         beforeEach(resetContractTestEnv);
+
+        it('earlyReserveBeginTime > now and address not in earlyUserQuotas map', async() => {
+            var preTokens = await web3.fromWei(await wanContract.lockedBalanceOf(accounts[0]));
+            await wrappedWeb3SendTransaction({
+                from: accounts[0],
+                to:contributionContract.address,
+                value: 1 * ether
+            }).catch(() => {} );
+            assert.equal((await wanContract.lockedBalanceOf(accounts[0])).toNumber(), 0);
+            await assertUserReceivedLockedToken(accounts[0], preTokens, 0);
+        });
         
-        it('now < earlyReserveBeginTime and address in earlyUserQuotas map', async() => {
+        it('earlyReserveBeginTime > now and address in earlyUserQuotas map', async() => {
             earlyReserveBeginTime = await contributionContract.earlyReserveBeginTime();
             await contributionContract.setMockedEarlyReserveBeginTime(earlyReserveBeginTime + 1000);
             await contributionContract.setEarlyWhitelistQuotas(accounts, web3.toWei(DefaultEarlyQuota, 'ether'), 1, {from: accounts[1]}).catch(()=> {});
@@ -232,28 +286,524 @@ contract('WanchainContributionMock', (accounts) => {
             }).catch(() => {} );
             assert.equal((await wanContract.lockedBalanceOf(accounts[0])).toNumber(), 0);
         });
-        it('now >= earlyReserveBeginTime and address in earlyUserQuotas map', async() => {
+
+        it('earlyReserveBeginTime <= now < startTime and address not in whitelist map', async() => {
+            var preTokens = await web3.fromWei(await wanContract.lockedBalanceOf(accounts[3]));
+            await wrappedWeb3SendTransaction({
+                from: accounts[3],
+                to:contributionContract.address,
+                value: 1 * ether
+            }).catch(() => {});
+            await assertUserReceivedLockedToken(accounts[3], preTokens, 0);
+        });        
+
+        it('earlyReserveBeginTime <= now < startTime and address  in fullwhitelist map but not in earlyUserQuotas', async() => {
+            await contributionContract.setMockedEarlyReserveBeginTime(earlyReserveBeginTime + 100000);
+            await contributionContract.setLaterWhiteList(accounts, 1, {from: accounts[0]});
+            await contributionContract.setMockedEarlyReserveBeginTime(earlyReserveBeginTime);
+
+            var preTokens = await web3.fromWei(await wanContract.lockedBalanceOf(accounts[3]));
+            await wrappedWeb3SendTransaction({
+                from: accounts[3],
+                to:contributionContract.address,
+                value: ether
+            }).catch(() => {});
+            await assertUserReceivedLockedToken(accounts[3], preTokens, 0);
+        });        
+
+
+        it('earlyReserveBeginTime <= now < startTime and address in earlyUserQuotas map and msg.value < minimum eth for tx', async() => {
             earlyReserveBeginTime = await contributionContract.earlyReserveBeginTime();
-            console.log((await wanContract.lockedBalanceOf(accounts[3])).toNumber());
+            // console.log((await wanContract.lockedBalanceOf(accounts[3])).toNumber());
             await contributionContract.setMockedEarlyReserveBeginTime(earlyReserveBeginTime + 100000);
             await contributionContract.setEarlyWhitelistQuotas(accounts, web3.toWei(DefaultEarlyQuota, 'ether'), 1, {from: accounts[0]});
             await contributionContract.setMockedEarlyReserveBeginTime(earlyReserveBeginTime);
 
             var preTxWalletBalance = await web3.fromWei(web3.eth.getBalance(wanWallet));    
-            console.log('preTxWalletBalance:' + preTxWalletBalance);        
+            var preTokens = await web3.fromWei(await wanContract.lockedBalanceOf(accounts[3]));
+            console.log('preTokens:' + preTokens);        
+            await wrappedWeb3SendTransaction({
+                from: accounts[3],
+                to:contributionContract.address,
+                value: ether.mul(0.031)
+            }).catch(() => {});            
+            await assertUserReceivedLockedToken(accounts[3], preTokens, 0);
+
+            await assertWalletReceivedFund(preTxWalletBalance, 0);
+            assert.equal(web3.fromWei(await contributionContract.earlyUserQuotas(accounts[3])), DefaultEarlyQuota);
+        });        
+
+
+        it('earlyReserveBeginTime <= now < startTime and address in earlyUserQuotas map and msg.value < DefaultEarlyQuota', async() => {
+            earlyReserveBeginTime = await contributionContract.earlyReserveBeginTime();
+            // console.log((await wanContract.lockedBalanceOf(accounts[3])).toNumber());
+            await contributionContract.setMockedEarlyReserveBeginTime(earlyReserveBeginTime + 100000);
+            await contributionContract.setEarlyWhitelistQuotas(accounts, web3.toWei(DefaultEarlyQuota, 'ether'), 1, {from: accounts[0]});
+            await contributionContract.setMockedEarlyReserveBeginTime(earlyReserveBeginTime);
+
+            var preTxWalletBalance = await web3.fromWei(web3.eth.getBalance(wanWallet));    
+            var preTokens = await web3.fromWei(await wanContract.lockedBalanceOf(accounts[3]));
+            console.log('preTokens:' + preTokens);        
+            await wrappedWeb3SendTransaction({
+                from: accounts[3],
+                to:contributionContract.address,
+                value: ether.mul(1.031)
+            });            
+            await assertUserReceivedLockedToken(accounts[3], preTokens, 1.031 * PRICE_RATE_FIRST);
+
+            await assertWalletReceivedFund(preTxWalletBalance, 1.031);
+            var remainCap = DefaultEarlyQuota - 1.031;
+            assert.equal(web3.fromWei(await contributionContract.earlyUserQuotas(accounts[3])), remainCap);
+        });        
+
+        it('earlyReserveBeginTime <= now < startTime and address in earlyUserQuotas map and msg.value > DefaultEarlyQuota', async() => {
+            earlyReserveBeginTime = await contributionContract.earlyReserveBeginTime();
+            await contributionContract.setMockedEarlyReserveBeginTime(earlyReserveBeginTime + 100000);
+            await contributionContract.setEarlyWhitelistQuotas(accounts, web3.toWei(DefaultEarlyQuota, 'ether'), 1, {from: accounts[0]});
+            await contributionContract.setMockedEarlyReserveBeginTime(earlyReserveBeginTime);
+
+            var preTxWalletBalance = await web3.fromWei(web3.eth.getBalance(wanWallet));    
+            var preTokens = await web3.fromWei(await wanContract.lockedBalanceOf(accounts[1]));
+            // console.log('preTxWalletBalance:' + preTxWalletBalance);        
+            await wrappedWeb3SendTransaction({
+                from: accounts[1],
+                to:contributionContract.address,
+                value: (DefaultEarlyQuota + 1) * ether,
+                gas: 120000
+            });
+            await assertUserReceivedLockedToken(accounts[1], preTokens, DefaultEarlyQuota * PRICE_RATE_FIRST);
+
+            await assertWalletReceivedFund(preTxWalletBalance, DefaultEarlyQuota);
+            assert.equal(web3.fromWei(await contributionContract.earlyUserQuotas(accounts[1])), 0);
+        });        
+
+        it('earlyReserveBeginTime <= now < startTime and address in earlyUserQuotas map and  [msg.value + ...] >  DefaultEarlyQuota', async() => {
+            earlyReserveBeginTime = await contributionContract.earlyReserveBeginTime();
+            await contributionContract.setMockedEarlyReserveBeginTime(earlyReserveBeginTime + 100000);
+            await contributionContract.setEarlyWhitelistQuotas(accounts, web3.toWei(DefaultEarlyQuota, 'ether'), 1, {from: accounts[0]});
+            await contributionContract.setMockedEarlyReserveBeginTime(earlyReserveBeginTime);
+
+            var preTxWalletBalance = await web3.fromWei(web3.eth.getBalance(wanWallet));    
+            var preTokens = await web3.fromWei(await wanContract.lockedBalanceOf(accounts[1]));
+            // console.log('preTxWalletBalance:' + preTxWalletBalance);        
+            await wrappedWeb3SendTransaction({
+                from: accounts[1],
+                to:contributionContract.address,
+                value: ether.mul(1.2093),
+                gas: 120000
+            });
+            await wrappedWeb3SendTransaction({
+                from: accounts[1],
+                to:contributionContract.address,
+                value: ether.mul(1.2093),
+                gas: 120000
+            });
+
+            await wrappedWeb3SendTransaction({
+                from: accounts[1],
+                to:contributionContract.address,
+                value: ether.mul(5.2093),
+                gas: 120000
+            });
+
+            await assertUserReceivedLockedToken(accounts[1], preTokens, DefaultEarlyQuota * PRICE_RATE_FIRST);
+
+            await assertWalletReceivedFund(preTxWalletBalance, DefaultEarlyQuota);
+            assert.equal(web3.fromWei(await contributionContract.earlyUserQuotas(accounts[1])), 0);
+        });          
+
+        it('startTime <= now < Stage1End and address not in fullwhitelist map', async() => {
+            earlyReserveBeginTime = await contributionContract.earlyReserveBeginTime();
+            await contributionContract.setMockedEarlyReserveBeginTime(earlyReserveBeginTime - 1000);
+            await contributionContract.setMockedStartTime(earlyReserveBeginTime - 900);
+
+            var preTokens = await web3.fromWei(await wanContract.lockedBalanceOf(accounts[3]));
             await wrappedWeb3SendTransaction({
                 from: accounts[3],
                 to:contributionContract.address,
                 value: 1 * ether
-            });
-            assert.equal((await wanContract.lockedBalanceOf(accounts[3])).toNumber(), ether.times(PRICE_RATE_FIRST).toNumber());
+            }).catch(() => {});
+            await assertUserReceivedLockedToken(accounts[3], preTokens, 0);
+        });    
 
-            var postWalletBalance = await web3.fromWei(web3.eth.getBalance(wanWallet));
-            console.log('postWalletBalance:' + postWalletBalance);
-            assert.equal(postWalletBalance-preTxWalletBalance, 1)
-        });        
+        it('startTime <= now < Stage1End and enrolled from earlyUserQuotas' + 
+            '&&  required minimum > msg.value', async() => {
+
+            earlyReserveBeginTime = await contributionContract.earlyReserveBeginTime();
+            await contributionContract.setMockedEarlyReserveBeginTime(earlyReserveBeginTime + 100000);
+            await contributionContract.setEarlyWhitelistQuotas(accounts, web3.toWei(DefaultEarlyQuota, 'ether'), 1, {from: accounts[0]});
+
+            latestBlock = await web3.eth.getBlock('latest');
+            nearNow = latestBlock.timestamp;
+            await contributionContract.setMockedEarlyReserveBeginTime(nearNow - EARLY_CONTRIBUTION_DURATION);
+            await contributionContract.setMockedStartTime(nearNow - 1 * hours);
+
+            var preTokens = await web3.fromWei(await wanContract.lockedBalanceOf(accounts[3]));
+            await wrappedWeb3SendTransaction({
+                from: accounts[3],
+                to:contributionContract.address,
+                value: ether.mul(0.05)
+            }).catch(() => {});
+            await assertUserReceivedLockedToken(accounts[3], preTokens, 0);
+        });    
+
+        it('startTime <= now < Stage1End and enrolled from earlyUserQuotas' + 
+            '&&  required maximum < msg.value', async() => {
+            earlyReserveBeginTime = await contributionContract.earlyReserveBeginTime();
+            await contributionContract.setMockedEarlyReserveBeginTime(earlyReserveBeginTime + 100000);
+            await contributionContract.setEarlyWhitelistQuotas(accounts, web3.toWei(DefaultEarlyQuota, 'ether'), 1, {from: accounts[0]});
+
+            latestBlock = await web3.eth.getBlock('latest');
+            nearNow = latestBlock.timestamp;
+            await contributionContract.setMockedEarlyReserveBeginTime(nearNow - EARLY_CONTRIBUTION_DURATION);
+            await contributionContract.setMockedStartTime(nearNow - 1 * hours);
+
+            var preTokens = await web3.fromWei(await wanContract.lockedBalanceOf(accounts[3]));
+            await wrappedWeb3SendTransaction({
+                from: accounts[3],
+                to:contributionContract.address,
+                value: ether.mul(65.01)
+            }).catch(() => {});
+            await assertUserReceivedLockedToken(accounts[3], preTokens, 0);
+        });    
+
+        it('startTime <= now < Stage1End and enrolled from earlyUserQuotas' + 
+            '&& 0.1eth <= msg.value <= 65eth && available tokens enough', async() => {
+            earlyReserveBeginTime = await contributionContract.earlyReserveBeginTime();
+            await contributionContract.setMockedEarlyReserveBeginTime(earlyReserveBeginTime + 100000);
+            await contributionContract.setEarlyWhitelistQuotas(accounts, web3.toWei(DefaultEarlyQuota, 'ether'), 1, {from: accounts[0]});
+
+            latestBlock = await web3.eth.getBlock('latest');
+            nearNow = latestBlock.timestamp;
+            await contributionContract.setMockedEarlyReserveBeginTime(nearNow - EARLY_CONTRIBUTION_DURATION);
+            await contributionContract.setMockedStartTime(nearNow - 1 * hours);
+
+            var preTokens = await web3.fromWei(await wanContract.lockedBalanceOf(accounts[3]));
+            var preTxWalletBalance = await web3.fromWei(web3.eth.getBalance(wanWallet));    
+            await wrappedWeb3SendTransaction({
+                from: accounts[3],
+                to:contributionContract.address,
+                value: ether.mul(25.327)
+            }).catch(() => {});
+            await wrappedWeb3SendTransaction({
+                from: accounts[3],
+                to:contributionContract.address,
+                value: ether.mul(65)
+            }).catch(() => {});
+            await wrappedWeb3SendTransaction({
+                from: accounts[3],
+                to:contributionContract.address,
+                value: ether.mul(1)
+            }).catch(() => {});
+            await assertUserReceivedLockedToken(accounts[3], preTokens, new BigNumber(PRICE_RATE_FIRST).mul(25.327+65+1).toNumber(), true);
+            await assertWalletReceivedFund(preTxWalletBalance, 25.327+65+1);
+        });    
+
+        it('startTime <= now < Stage1End and enrolled from earlyUserQuotas' + 
+            '&& 0.1eth <= msg.value <= 65eth && available tokens partial', async() => {
+            earlyReserveBeginTime = await contributionContract.earlyReserveBeginTime();
+            await contributionContract.setMockedEarlyReserveBeginTime(earlyReserveBeginTime + 100000);
+            await contributionContract.setEarlyWhitelistQuotas(accounts, web3.toWei(DefaultEarlyQuota, 'ether'), 1, {from: accounts[0]});
+
+            latestBlock = await web3.eth.getBlock('latest');
+            nearNow = latestBlock.timestamp;
+            await contributionContract.setMockedEarlyReserveBeginTime(nearNow - EARLY_CONTRIBUTION_DURATION);
+            await contributionContract.setMockedStartTime(nearNow - 1 * hours);
+            await contributionContract.setMockedOpenSoldTokensRemain(12345);
+
+            var preTokens = await web3.fromWei(await wanContract.lockedBalanceOf(accounts[3]));
+            var preTxWalletBalance = await web3.fromWei(web3.eth.getBalance(wanWallet));    
+            await wrappedWeb3SendTransaction({
+                from: accounts[3],
+                to:contributionContract.address,
+                value: ether.mul(25.327)
+            }).catch(() => {});
+            await assertUserReceivedLockedToken(accounts[3], preTokens, new BigNumber(12345).toNumber(), true);
+            await assertWalletReceivedFund(preTxWalletBalance, 12345/PRICE_RATE_FIRST);
+            await assert.equal(web3.fromWei(await contributionContract.openSoldTokens()).sub( 
+                web3.fromWei(await contributionContract.MAX_OPEN_SOLD())), 0);            
+        });            
+
+        it('startTime <= now < Stage1End and enrolled from earlyUserQuotas' + 
+            '&& 0.1eth <= msg.value <= 65eth && none available tokens', async() => {
+            earlyReserveBeginTime = await contributionContract.earlyReserveBeginTime();
+            await contributionContract.setMockedEarlyReserveBeginTime(earlyReserveBeginTime + 100000);
+            await contributionContract.setEarlyWhitelistQuotas(accounts, web3.toWei(DefaultEarlyQuota, 'ether'), 1, {from: accounts[0]});
+
+            latestBlock = await web3.eth.getBlock('latest');
+            nearNow = latestBlock.timestamp;
+            await contributionContract.setMockedEarlyReserveBeginTime(nearNow - EARLY_CONTRIBUTION_DURATION);
+            await contributionContract.setMockedStartTime(nearNow - 1 * hours);
+            await contributionContract.setMockedOpenSoldTokensRemain(0);
+
+            var preTokens = await web3.fromWei(await wanContract.lockedBalanceOf(accounts[3]));
+            var preTxWalletBalance = await web3.fromWei(web3.eth.getBalance(wanWallet));    
+            await wrappedWeb3SendTransaction({
+                from: accounts[3],
+                to:contributionContract.address,
+                value: ether.mul(25.327)
+            }).catch(() => {});
+            await assertUserReceivedLockedToken(accounts[3], preTokens, new BigNumber(0).toNumber(), true);
+            await assertWalletReceivedFund(preTxWalletBalance, 0);
+        });            
+
+        it('Stage1End <= now < Stage2End and address not in fullwhitelist map', async() => {
+            earlyReserveBeginTime = await contributionContract.earlyReserveBeginTime();
+            await contributionContract.setMockedEarlyReserveBeginTime(earlyReserveBeginTime - 1*weeks - EARLY_CONTRIBUTION_DURATION);
+            await contributionContract.setMockedStartTime(earlyReserveBeginTime - 1 * weeks - 1* hours);
+
+            var preTokens = await web3.fromWei(await wanContract.lockedBalanceOf(accounts[3]));
+            await wrappedWeb3SendTransaction({
+                from: accounts[3],
+                to:contributionContract.address,
+                value: 1 * ether
+            }).catch(() => {});
+            await assertUserReceivedLockedToken(accounts[3], preTokens, 0);
+        });    
+
+        it('Stage1End <= now < Stage2End and enrolled from earlyUserQuotas' + 
+            '&&  required minimum > msg.value', async() => {
+            earlyReserveBeginTime = await contributionContract.earlyReserveBeginTime();
+            await contributionContract.setMockedEarlyReserveBeginTime(earlyReserveBeginTime - 1*weeks - EARLY_CONTRIBUTION_DURATION);
+            await contributionContract.setMockedStartTime(earlyReserveBeginTime - 1 * weeks - 1* hours);
+
+            var preTokens = await web3.fromWei(await wanContract.lockedBalanceOf(accounts[3]));
+            await wrappedWeb3SendTransaction({
+                from: accounts[3],
+                to:contributionContract.address,
+                value: ether.mul(0.05)
+            }).catch(() => {});
+            await assertUserReceivedLockedToken(accounts[3], preTokens, 0);
+        });    
+
+        it('Stage1End <= now < Stage2End and enrolled from earlyUserQuotas' + 
+            '&&  required maximum < msg.value', async() => {
+            earlyReserveBeginTime = await contributionContract.earlyReserveBeginTime();
+            await contributionContract.setMockedEarlyReserveBeginTime(earlyReserveBeginTime + 100000);
+            await contributionContract.setEarlyWhitelistQuotas(accounts, web3.toWei(DefaultEarlyQuota, 'ether'), 1, {from: accounts[0]});
+
+            latestBlock = await web3.eth.getBlock('latest');
+            nearNow = latestBlock.timestamp;
+            await contributionContract.setMockedEarlyReserveBeginTime(nearNow - 1*weeks - EARLY_CONTRIBUTION_DURATION);
+            await contributionContract.setMockedStartTime(nearNow - 1 * weeks - 1* hours);
+            await contributionContract.setMockedEndTime(nearNow - 1 * weeks - 1* hours + 3 * weeks);
+
+            var preTokens = await web3.fromWei(await wanContract.lockedBalanceOf(accounts[3]));
+            await wrappedWeb3SendTransaction({
+                from: accounts[3],
+                to:contributionContract.address,
+                value: ether.mul(65.01)
+            }).catch(() => {});
+            await assertUserReceivedLockedToken(accounts[3], preTokens, 0);
+        });    
+
+        it('Stage1End <= now < Stage2End and enrolled from earlyUserQuotas' + 
+            '&& 0.1eth <= msg.value <= 65eth && available tokens enough', async() => {
+            earlyReserveBeginTime = await contributionContract.earlyReserveBeginTime();
+            await contributionContract.setMockedEarlyReserveBeginTime(earlyReserveBeginTime + 100000);
+            await contributionContract.setEarlyWhitelistQuotas(accounts, web3.toWei(DefaultEarlyQuota, 'ether'), 1, {from: accounts[0]});
+
+            latestBlock = await web3.eth.getBlock('latest');
+            nearNow = latestBlock.timestamp;
+            await contributionContract.setMockedEarlyReserveBeginTime(nearNow - 1*weeks - EARLY_CONTRIBUTION_DURATION);
+            await contributionContract.setMockedStartTime(nearNow - 1 * weeks - 1* hours);
+            await contributionContract.setMockedEndTime(nearNow - 1 * weeks - 1* hours + 3 * weeks);
+
+            var preTokens = await web3.fromWei(await wanContract.lockedBalanceOf(accounts[3]));
+            var preTxWalletBalance = await web3.fromWei(web3.eth.getBalance(wanWallet));    
+            await wrappedWeb3SendTransaction({
+                from: accounts[3],
+                to:contributionContract.address,
+                value: ether.mul(25.327)
+            }).catch(() => {});
+            await wrappedWeb3SendTransaction({
+                from: accounts[3],
+                to:contributionContract.address,
+                value: ether.mul(65)
+            }).catch(() => {});
+            await wrappedWeb3SendTransaction({
+                from: accounts[3],
+                to:contributionContract.address,
+                value: ether.mul(1)
+            }).catch(() => {});
+            await assertUserReceivedLockedToken(accounts[3], preTokens, new BigNumber(PRICE_RATE_SECOND).mul(25.327+65+1).toNumber(), true);
+            await assertWalletReceivedFund(preTxWalletBalance, 25.327+65+1);
+        });    
+
+        it('Stage1End <= now < Stage2End and enrolled from earlyUserQuotas' + 
+            '&& 0.1eth <= msg.value <= 65eth && available tokens partial', async() => {
+            earlyReserveBeginTime = await contributionContract.earlyReserveBeginTime();
+            await contributionContract.setMockedEarlyReserveBeginTime(earlyReserveBeginTime + 100000);
+            await contributionContract.setEarlyWhitelistQuotas(accounts, web3.toWei(DefaultEarlyQuota, 'ether'), 1, {from: accounts[0]});
+
+            latestBlock = await web3.eth.getBlock('latest');
+            nearNow = latestBlock.timestamp;
+            await contributionContract.setMockedEarlyReserveBeginTime(nearNow - 1*weeks - EARLY_CONTRIBUTION_DURATION);
+            await contributionContract.setMockedStartTime(nearNow - 1 * weeks - 1* hours);
+            await contributionContract.setMockedEndTime(nearNow - 1 * weeks - 1* hours + 3 * weeks);
+            await contributionContract.setMockedOpenSoldTokensRemain(12345);
+
+            var preTokens = await web3.fromWei(await wanContract.lockedBalanceOf(accounts[3]));
+            var preTxWalletBalance = await web3.fromWei(web3.eth.getBalance(wanWallet));    
+            await wrappedWeb3SendTransaction({
+                from: accounts[3],
+                to:contributionContract.address,
+                value: ether.mul(25.327)
+            }).catch(() => {});
+            await assertUserReceivedLockedToken(accounts[3], preTokens, new BigNumber(12345).toNumber(), true);
+            await assertWalletReceivedFund(preTxWalletBalance, 12345/PRICE_RATE_SECOND);
+            await assert.equal(web3.fromWei(await contributionContract.openSoldTokens()).sub( 
+                web3.fromWei(await contributionContract.MAX_OPEN_SOLD())), 0);            
+        });            
+
+        it('Stage1End <= now < Stage2End and enrolled from earlyUserQuotas' + 
+            '&& 0.1eth <= msg.value <= 65eth && none available tokens', async() => {
+            earlyReserveBeginTime = await contributionContract.earlyReserveBeginTime();
+            await contributionContract.setMockedEarlyReserveBeginTime(earlyReserveBeginTime + 100000);
+            await contributionContract.setEarlyWhitelistQuotas(accounts, web3.toWei(DefaultEarlyQuota, 'ether'), 1, {from: accounts[0]});
+
+            latestBlock = await web3.eth.getBlock('latest');
+            nearNow = latestBlock.timestamp;
+            await contributionContract.setMockedEarlyReserveBeginTime(nearNow - 1*weeks - EARLY_CONTRIBUTION_DURATION);
+            await contributionContract.setMockedStartTime(nearNow - 1 * weeks - 1* hours);
+            await contributionContract.setMockedEndTime(nearNow - 1 * weeks - 1* hours + 3 * weeks);
+            await contributionContract.setMockedOpenSoldTokensRemain(0);
+
+            var preTokens = await web3.fromWei(await wanContract.lockedBalanceOf(accounts[3]));
+            var preTxWalletBalance = await web3.fromWei(web3.eth.getBalance(wanWallet));    
+            await wrappedWeb3SendTransaction({
+                from: accounts[3],
+                to:contributionContract.address,
+                value: ether.mul(25.327)
+            }).catch(() => {});
+            await assertUserReceivedLockedToken(accounts[3], preTokens, new BigNumber(0).toNumber(), true);
+            await assertWalletReceivedFund(preTxWalletBalance, 0);
+        });            
+
+        //////////////////////////////////////////////////////////
+        //////////////////////////////////////////////////////////
+        //////////////////////////////////////////////////////////
+        it('Stage2End < now < =TotalEnd and address not in fullwhitelist map', async() => {
+            await mockNowInStage3();
+
+            var preTokens = await web3.fromWei(await wanContract.lockedBalanceOf(accounts[3]));
+            await wrappedWeb3SendTransaction({
+                from: accounts[3],
+                to:contributionContract.address,
+                value: 1 * ether
+            }).catch(() => {});
+            await assertUserReceivedLockedToken(accounts[3], preTokens, 0);
+        });    
+
+        it('Stage2End <= now < TotalEnd and enrolled from earlyUserQuotas' + 
+            '&&  required minimum > msg.value', async() => {
+            await mockAddrToEarlyList(accounts[3]);
+            await mockNowInStage3();
+
+            var preTokens = await web3.fromWei(await wanContract.lockedBalanceOf(accounts[3]));
+            await wrappedWeb3SendTransaction({
+                from: accounts[3],
+                to:contributionContract.address,
+                value: ether.mul(0.05)
+            }).catch(() => {});
+            await assertUserReceivedLockedToken(accounts[3], preTokens, 0);
+        });    
+
+        it('Stage2End <= now < TotalEnd and enrolled from earlyUserQuotas' + 
+            '&&  required maximum < msg.value', async() => {
+            await mockAddrToEarlyList(accounts[3]);
+            await mockNowInStage3();
+
+            var preTokens = await web3.fromWei(await wanContract.lockedBalanceOf(accounts[3]));
+            await wrappedWeb3SendTransaction({
+                from: accounts[3],
+                to:contributionContract.address,
+                value: ether.mul(65.01)
+            }).catch(() => {});
+            await assertUserReceivedLockedToken(accounts[3], preTokens, 0);
+        });    
+
+        it('Stage2End <= now < TotalEnd and enrolled from earlyUserQuotas' + 
+            '&& 0.1eth <= msg.value <= 65eth && available tokens enough', async() => {
+            await mockAddrToEarlyList(accounts[3]);
+            await mockNowInStage3();                
+
+            var preTokens = await web3.fromWei(await wanContract.lockedBalanceOf(accounts[3]));
+            var preTxWalletBalance = await web3.fromWei(web3.eth.getBalance(wanWallet));    
+            await wrappedWeb3SendTransaction({
+                from: accounts[3],
+                to:contributionContract.address,
+                value: ether.mul(25.327)
+            }).catch(() => {});
+            await wrappedWeb3SendTransaction({
+                from: accounts[3],
+                to:contributionContract.address,
+                value: ether.mul(65)
+            }).catch(() => {});
+            await wrappedWeb3SendTransaction({
+                from: accounts[3],
+                to:contributionContract.address,
+                value: ether.mul(1)
+            }).catch(() => {});
+            await assertUserReceivedLockedToken(accounts[3], preTokens, new BigNumber(PRICE_RATE_LAST).mul(25.327+65+1).toNumber(), true);
+            await assertWalletReceivedFund(preTxWalletBalance, 25.327+65+1);
+        });    
+
+        it('Stage2End <= now < TotalEnd and enrolled from earlyUserQuotas' + 
+            '&& 0.1eth <= msg.value <= 65eth && available tokens partial', async() => {
+            await mockAddrToEarlyList(accounts[3]);
+            await mockNowInStage3();
+            await contributionContract.setMockedOpenSoldTokensRemain(12345);
+
+            var preTokens = await web3.fromWei(await wanContract.lockedBalanceOf(accounts[3]));
+            var preTxWalletBalance = await web3.fromWei(web3.eth.getBalance(wanWallet)); 
+            await wrappedWeb3SendTransaction({
+                from: accounts[3],
+                to:contributionContract.address,
+                value: ether.mul(25.37)
+            }).catch(() => {});
+
+            await assertUserReceivedLockedToken(accounts[3], preTokens, new BigNumber(12345).toNumber(), true);
+            await assertWalletReceivedFund(preTxWalletBalance, 12345/PRICE_RATE_LAST);
+            await assert.equal(web3.fromWei(await contributionContract.openSoldTokens()).sub( 
+                web3.fromWei(await contributionContract.MAX_OPEN_SOLD())), 0);
+        });            
+
+        it('Stage2End <= now < TotalEnd and enrolled from earlyUserQuotas' + 
+            '&& 0.1eth <= msg.value <= 65eth && none available tokens', async() => {
+            await mockAddrToEarlyList(accounts[3]);
+            await mockNowInStage3();                
+            await contributionContract.setMockedOpenSoldTokensRemain(0);
+
+            var preTokens = await web3.fromWei(await wanContract.lockedBalanceOf(accounts[3]));
+            var preTxWalletBalance = await web3.fromWei(web3.eth.getBalance(wanWallet));    
+            await wrappedWeb3SendTransaction({
+                from: accounts[3],
+                to:contributionContract.address,
+                value: ether.mul(25.327)
+            }).catch(() => {});
+            await assertUserReceivedLockedToken(accounts[3], preTokens, new BigNumber(0).toNumber(), true);
+            await assertWalletReceivedFund(preTxWalletBalance, 0);
+        });            
     });
 
+    describe('ClaimTokens', () => {
+        beforeEach(resetContractTestEnv);
+
+        it('ClaimTokens before sold out', async() => {
+            await mockAddrToEarlyList(accounts[3]);
+            await mockNowInStage3();                
+            var priceRate = await contributionContract.priceRate();
+            var preTokens = await web3.fromWei(await wanContract.lockedBalanceOf(accounts[3]));
+            var preTxWalletBalance = await web3.fromWei(web3.eth.getBalance(wanWallet));    
+            await wrappedWeb3SendTransaction({
+                from: accounts[3],
+                to:contributionContract.address,
+                value: ether.mul(25.327)
+            }).catch(() => {});
+            await assertUserReceivedLockedToken(accounts[3], preTokens, new BigNumber(priceRate.toNumber()).mul(25.327).toNumber(), true);            
+        });
+    });
 
     /*
     testing for wallet interface

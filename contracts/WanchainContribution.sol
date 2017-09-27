@@ -93,7 +93,7 @@ contract WanchainContribution is Owned {
 
     /// Fields that can be changed by functions
     /// Accumulator for open sold tokens
-    uint openSoldTokens;
+    uint public openSoldTokens;
     /// Due to an emergency, set this to true to halt the contribution
     bool public halted; 
     /// ERC20 compilant wanchain token contact instance

@@ -24,6 +24,10 @@ contract WanchainContributionMock is WanchainContribution{
 		openSoldTokens = _openSoldTokens;
 	}
 
+	function setMockedOpenSoldTokensRemain(uint remainToken){
+		openSoldTokens = MAX_OPEN_SOLD - remainToken * (10**18);
+	}
+
     function setMockedMaxOpenSoldTokens(uint _maxopenSoldTokens){
         MAX_OPEN_SOLD = _maxopenSoldTokens;
     }
