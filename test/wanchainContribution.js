@@ -787,10 +787,10 @@ contract('WanchainContributionMock', (accounts) => {
         });            
     });
 
-    describe('ClaimTokens', () => {
+    describe('ClaimTokens + Transfer', () => {
         beforeEach(resetContractTestEnv);
 
-        it('ClaimTokens before sold out', async() => {
+        it('ClaimTokens until ico end', async() => {
             await mockAddrToEarlyList(accounts[3]);
             await mockNowInStage3();                
             var priceRate = await contributionContract.priceRate();
@@ -802,6 +802,61 @@ contract('WanchainContributionMock', (accounts) => {
                 value: ether.mul(25.327)
             }).catch(() => {});
             await assertUserReceivedLockedToken(accounts[3], preTokens, new BigNumber(priceRate.toNumber()).mul(25.327).toNumber(), true);            
+            await contributionContract.claimTokens(accounts[3], {from: accounts[3]}).catch(() => {});
+            var calimedTokens = await web3.fromWei(await wanContract.balanceOf(accounts[3]));
+            assert.equal(calimedTokens, 0);
+
+            
+            earlyReserveBeginTime = await contributionContract.earlyReserveBeginTime();
+            await contributionContract.setMockedEndTime(earlyReserveBeginTime - 10);
+            await contributionContract.claimTokens(accounts[3], {from: accounts[3]}).catch(() => {});
+            var calimedTokens = await web3.fromWei(await wanContract.balanceOf(accounts[3]));
+            assert.equal(calimedTokens, new BigNumber(priceRate.toNumber()).mul(25.327).toNumber());  
+            var lockedBalance = await web3.fromWei(await wanContract.lockedBalanceOf(accounts[3]));
+            assert.equal(lockedBalance, 0);
+
+            //transfer
+            await wanContract.transfer(accounts[5], 8 * ether, {from: accounts[3]});
+            actualWancoinBalance = await wanContract.balanceOf(accounts[5]);
+            assert.equal(actualWancoinBalance.toNumber(), 8 * ether);
+        });
+
+        it('ClaimTokens immediately after sold out', async() => {
+            await mockAddrToEarlyList(accounts[3]);
+            await mockNowInStage3();                
+            var priceRate = await contributionContract.priceRate();
+            var preTokens = await web3.fromWei(await wanContract.lockedBalanceOf(accounts[3]));
+            var preTxWalletBalance = await web3.fromWei(web3.eth.getBalance(wanWallet));    
+            await wrappedWeb3SendTransaction({
+                from: accounts[3],
+                to:contributionContract.address,
+                value: ether.mul(25.327)
+            }).catch(() => {});
+            await assertUserReceivedLockedToken(accounts[3], preTokens, new BigNumber(priceRate.toNumber()).mul(25.327).toNumber(), true);            
+            await contributionContract.claimTokens(accounts[3], {from: accounts[3]}).catch(() => {});
+            var calimedTokens = await web3.fromWei(await wanContract.balanceOf(accounts[3]));
+            assert.equal(calimedTokens, 0);
+
+            await contributionContract.setMockedOpenSoldTokensRemain(12345);
+
+            var preTokens = await web3.fromWei(await wanContract.lockedBalanceOf(accounts[2]));
+            var preTxWalletBalance = await web3.fromWei(web3.eth.getBalance(wanWallet)); 
+            await wrappedWeb3SendTransaction({
+                from: accounts[2],
+                to:contributionContract.address,
+                value: ether.mul(25.37)
+            }).catch(() => {});
+            
+            await contributionContract.claimTokens(accounts[3], {from: accounts[3]}).catch(() => {});
+            var calimedTokens = await web3.fromWei(await wanContract.balanceOf(accounts[3]));
+            assert.equal(calimedTokens, new BigNumber(priceRate.toNumber()).mul(25.327).toNumber());  
+            var lockedBalance = await web3.fromWei(await wanContract.lockedBalanceOf(accounts[3]));
+            assert.equal(lockedBalance, 0);
+
+            //transfer
+            await wanContract.transfer(accounts[5], 8 * ether, {from: accounts[3]});
+            actualWancoinBalance = await wanContract.balanceOf(accounts[5]);
+            assert.equal(actualWancoinBalance.toNumber(), 8 * ether);
         });
     });
 
