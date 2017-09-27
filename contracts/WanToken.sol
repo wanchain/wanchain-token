@@ -104,6 +104,7 @@ contract WanToken is StandardToken {
         maxWanTokenAmountNotReached(amount)
         returns (bool)
     {
+        require(now <= endTime);
       	lockedBalances[receipent] = lockedBalances[receipent].add(amount);
       	totalSupply = totalSupply.add(amount);
       	return true;

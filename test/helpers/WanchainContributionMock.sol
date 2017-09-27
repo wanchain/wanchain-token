@@ -8,6 +8,10 @@ contract WanchainContributionMock is WanchainContribution{
 
 	}
 
+	function setMockedEarlyReserveBeginTime(uint ts){
+		earlyReserveBeginTime = ts;
+	}	
+
 	function setMockedStartTime(uint _startTime){
 		startTime = _startTime;
 	}
@@ -23,21 +27,4 @@ contract WanchainContributionMock is WanchainContribution{
     function setMockedMaxOpenSoldTokens(uint _maxopenSoldTokens){
         MAX_OPEN_SOLD = _maxopenSoldTokens;
     }
-
-    function setMockedNormalSoldTokens(uint _normalSoldTokens){
-        normalSoldTokens = _normalSoldTokens;
-    }
-
-	function setMockedPartnerBought(address partnerAddr, uint _partnerBought){
-		partnersBought[partnerAddr] = _partnerBought;
-	}
-
-	function setMockedPartnerLmit(address partnerAddr, uint _limit){
-		partnersLimit[partnerAddr] = _limit;
-	}
-
-    function getMockedPartnerReservedSum() returns (uint) {
-        return partnerReservedSum;
-    }
-
 }

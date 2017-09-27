@@ -188,7 +188,7 @@ contract WanchainContribution is Owned {
      * 
      * @dev If anybody sends Ether directly to this  contract, consider he is getting wan token
      */
-    function () public payable notHalted ceilingNotReached{
+    function () public payable {
     	buyWanCoin(msg.sender);
     }
 
@@ -196,7 +196,35 @@ contract WanchainContribution is Owned {
      * PUBLIC FUNCTIONS
      */
 
-   function setNormalBuyLimit(uint256 limit)
+    /// @dev Exchange msg.value ether to WAN for account recepient
+    /// @param receipient WAN tokens receiver
+    function buyWanCoin(address receipient) 
+        public 
+        payable 
+        notHalted 
+        initialized 
+        ceilingNotReached 
+        notEarlierThan(earlyReserveBeginTime)
+        earlierThan(endTime)
+        returns (bool) 
+    {
+        require(receipient != 0x0);
+        require(msg.value >= 0.1 ether);
+
+        // Do not allow contracts to game the system
+        require(!isContract(msg.sender));        
+
+        if( now < startTime && now >= earlyReserveBeginTime)
+            buyEarlyAdopters(receipient);
+        else {
+            require(msg.value <= normalBuyLimit);
+            buyNormal(receipient);
+        }
+
+        return true;
+    }
+
+    function setNormalBuyLimit(uint256 limit)
         public
         initialized
         onlyOwner
@@ -224,38 +252,10 @@ contract WanchainContribution is Owned {
         onlyOwner
         earlierThan(endTime)
     {
-        require(saleInProgress());
+        require(saleNotEnd());
         for( uint i = 0; i < users.length; i++) {
             fullWhiteList[users[i]] = openTag;
         }
-    }
-
-    /// @dev Exchange msg.value ether to WAN for account recepient
-    /// @param receipient WAN tokens receiver
-    function buyWanCoin(address receipient) 
-        public 
-        payable 
-        notHalted 
-        initialized 
-        ceilingNotReached 
-        notEarlierThan(earlyReserveBeginTime)
-        earlierThan(endTime)
-        returns (bool) 
-    {
-    	require(receipient != 0x0);
-    	require(msg.value >= 0.1 ether);
-
-        // Do not allow contracts to game the system
-        require(!isContract(msg.sender));        
-
-        if( now < startTime && now > earlyReserveBeginTime)
-            buyEarlyAdopters(receipient);
-    	else {
-    		require(msg.value <= normalBuyLimit);
-    		buyNormal(receipient);
-    	}
-
-    	return true;
     }
 
     /// @dev Emergency situation that requires contribution period to stop.
@@ -275,13 +275,8 @@ contract WanchainContribution is Owned {
         wanport = newAddress; 
     }
 
-    /// @return true if sale has started, false otherwise.
-    function saleStarted() constant returns (bool) {
-        return now >= startTime;
-    }
-
-    /// @return true if sale in ended, false otherwise.
-    function saleInProgress() constant returns (bool) {
+    /// @return true if sale not ended, false otherwise.
+    function saleNotEnd() constant returns (bool) {
         return now < endTime && openSoldTokens < MAX_OPEN_SOLD;
     }
 
@@ -316,7 +311,7 @@ contract WanchainContribution is Owned {
     	require(quotaAvailable > 0);
 
         uint toFund = quotaAvailable.min256(msg.value);
-        uint tokenAvailable4Adopter = quotaAvailable.mul(PRICE_RATE_FIRST);
+        uint tokenAvailable4Adopter = toFund.mul(PRICE_RATE_FIRST);
 
     	earlyUserQuotas[receipient] = earlyUserQuotas[receipient].sub(toFund);
     	buyCommon(receipient, toFund, tokenAvailable4Adopter);
