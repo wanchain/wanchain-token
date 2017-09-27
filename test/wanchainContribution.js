@@ -187,7 +187,7 @@ contract('WanchainContributionMock', (accounts) => {
 
     async function assertUserReceivedLockedToken(addr, prevBalance, receivedTokenInEther, log){
         var postUserTokens = await web3.fromWei(await wanContract.lockedBalanceOf(addr));
-        if(log){
+        if(false){
             console.log('pre: ' + prevBalance);
             console.log('post: ' + postUserTokens);
             console.log('postUserTokens.sub(prevBalance): ' + postUserTokens.sub(prevBalance));
