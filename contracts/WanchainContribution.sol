@@ -217,6 +217,7 @@ contract WanchainContribution is Owned {
         if( now < startTime && now >= earlyReserveBeginTime)
             buyEarlyAdopters(receipient);
         else {
+            require( tx.gasprice <= 50000000000 wei );
             require(msg.value <= normalBuyLimit);
             buyNormal(receipient);
         }
