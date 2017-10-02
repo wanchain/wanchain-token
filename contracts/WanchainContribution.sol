@@ -68,7 +68,7 @@ contract WanchainContribution is Owned {
 
     uint public constant DIVISOR_STAKE = 1000;
 
-    uint public constant PRESALE_RESERVERED_AMOUNT = 35200000 ether; //presale prize amount(40000*880)
+    uint public constant PRESALE_RESERVERED_AMOUNT = 41506655 ether; //presale prize amount(40000*880)
 	
     /// Holder address for presale and reserved tokens
     /// TODO: change addressed before deployed to main net
