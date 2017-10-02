@@ -74,10 +74,10 @@ contract WanchainContribution is Owned {
     /// TODO: change addressed before deployed to main net
 
     // Addresses of Patrons
-    address public constant DEV_TEAM_HOLDER = 0xB1EFca62C555b49E67363B48aE5b8Af3C7E3e656;
-    address public constant FOUNDATION_HOLDER = 0x00779e0e4c6083cfd26dE77B4dbc107A7EbB99d2;
-    address public constant MINERS_HOLDER = 0xDD91615Ea8De94bC48231c4ae9488891F1648dc5;
-    address public constant PRESALE_HOLDER = 0x25a1459D8845Eb3382245Ff5F955774958dc3211;
+    address public constant DEV_TEAM_HOLDER = 0x0001cdC69b1eb8bCCE29311C01092Bdcc92f8f8F;
+    address public constant FOUNDATION_HOLDER = 0x00dB4023b32008C45E62Add57De256a9399752D4;
+    address public constant MINERS_HOLDER = 0x00f870D11eA43AA1c4C715c61dC045E32d232787;
+    address public constant PRESALE_HOLDER = 0x00577c25A81fA2401C5246F4a7D5ebaFfA4b00Aa;
 	
     uint public MAX_OPEN_SOLD = WAN_TOTAL_SUPPLY * OPEN_SALE_STAKE / DIVISOR_STAKE - PRESALE_RESERVERED_AMOUNT;
 
