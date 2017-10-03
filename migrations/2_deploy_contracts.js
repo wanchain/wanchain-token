@@ -2,7 +2,7 @@ var ConvertLib = artifacts.require("./ConvertLib.sol");
 var Math = artifacts.require("./SafeMath.sol");
 var WanChainICO = artifacts.require("./WanchainContribution.sol");
 
-var wanPort = '0x21e7f6c5fe0e26609f271f6e9f1343bb753f1096';
+var wanPort = '0x0010242590B52545AfDc82FE44b064cE055479EB';
 
 module.exports = function(deployer,network, accounts) {
   var dateTime = new Date("2017-10-03T16:00:00Z");
